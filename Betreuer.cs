@@ -1,6 +1,6 @@
 ﻿namespace VereinsVerwaltung;
 
-public class Trainer
+public class Betreuer
 {
     #region Eigenschaften
     #endregion
