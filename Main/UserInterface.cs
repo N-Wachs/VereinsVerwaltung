@@ -1,6 +1,4 @@
-﻿
-
-namespace VereinsVerwaltung;
+﻿namespace VereinsVerwaltung;
 
 public class UserInterface
 {
