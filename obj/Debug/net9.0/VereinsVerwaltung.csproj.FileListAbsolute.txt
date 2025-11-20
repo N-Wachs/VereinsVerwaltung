@@ -1,0 +1,4 @@
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.GeneratedMSBuildEditorConfig.editorconfig
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.AssemblyInfoInputs.cache
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.AssemblyInfo.cs
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.csproj.CoreCompileInputs.cache

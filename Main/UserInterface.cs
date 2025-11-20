@@ -1,4 +1,5 @@
-﻿namespace VereinsVerwaltung;
+﻿
+namespace VereinsVerwaltung;
 
 public class UserInterface
 {
@@ -52,7 +53,7 @@ public class UserInterface
         WriteLine("5. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option...");
-        _pressed = GetKey();
+        while (GetKey().KeyChar < '6' && _pressed.KeyChar > '0') ;
     }
     public void AnzeigeHauptmenueTrainer(string userName)
     {
@@ -68,7 +69,7 @@ public class UserInterface
         WriteLine("6. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option: ");
-        _pressed = GetKey();
+        while (GetKey().KeyChar < '7' && _pressed.KeyChar > '0') ;
     }
 
     public ConsoleKeyInfo GetKey(bool eingreifen = true) => _pressed = Console.ReadKey(eingreifen);
@@ -89,6 +90,54 @@ public class UserInterface
         Clear();
         Color = ConsoleColor.Green;
         WriteLine("Auf Wiedersehen!");
+    }
+
+    public (string username, string password) AnzeigeLogin()
+    {
+        string username = string.Empty;
+        string password = string.Empty;
+        bool wiederholen = false;
+
+        do
+        {
+            wiederholen = false;
+
+            Clear();
+            Color = ConsoleColor.Cyan;
+            WriteLine("==== Einlogen ====");
+            ResetColor();
+            WriteLine();
+            WriteLine("Bitte Username eingeben:");
+
+            if (username.Length <= 0)
+                username = ReadLine();
+
+            if (username.Length < 3)
+            {
+                wiederholen = true;
+                Color = ConsoleColor.Red;
+                WriteLine("Name zu kurz!");
+                ResetColor();
+                username = string.Empty;
+                Thread.Sleep(2000);
+            }
+
+            if (password.Length <= 0 && !wiederholen) 
+                password = Verschlüsselung.Ver(ReadLine());
+
+            if (password.Length < 3 && !wiederholen)
+            {
+                wiederholen = true;
+                Color = ConsoleColor.Red;
+                WriteLine("Password zu kurz!");
+                ResetColor();
+                username = string.Empty;
+                Thread.Sleep(2000);
+            }
+
+        } while (wiederholen);
+
+        return (username, password);
     }
     #endregion
 }

@@ -1,16 +1,17 @@
-﻿namespace VereinsVerwaltung;
+﻿
+namespace VereinsVerwaltung;
 
 public class Controller
 {
     #region Eigenschaften
     private UserInterface _interface;
-    private Verein _aktuellerVerein;
+    private List<Manschaft> _manschaften;
     private ManschaftsMitglied? _eingeloggtesMitglied;
     #endregion
 
     #region Assessoren/Modifikatoren
     public UserInterface Interface => _interface;
-    public Verein AktuellerVerein => _aktuellerVerein;
+    public List<Manschaft> AktuellerVerein => _manschaften;
     public ManschaftsMitglied? EingeloggtesMitglied => _eingeloggtesMitglied;
     #endregion
 
@@ -18,8 +19,11 @@ public class Controller
     public Controller()
     {
         _interface = new UserInterface();
-        _aktuellerVerein = new Verein();
+        _manschaften = new List<Manschaft>();
         _eingeloggtesMitglied = null;
+
+        #region Testwerte
+        #endregion
     }
     #endregion
 
@@ -67,6 +71,11 @@ public class Controller
                         break;
                 }
             }
+            else
+            {
+                // Einloggen
+                Login();
+            }
 
             // Mögliche Wiederholung basierend auf falscher Eingabe
             do
@@ -97,6 +106,31 @@ public class Controller
                 }
             } while (!richtigeEingabe);
         } while (wiederholen);
+    }
+
+    private void Login()
+    {
+        bool wiederholen = true;
+        string tempName = string.Empty;
+        string tempPass = string.Empty;
+
+        do
+        {
+            (tempName, tempPass) = _interface.AnzeigeLogin();
+
+            foreach (Manschaft temp in _manschaften)
+            {
+                for (int i = 0; i < temp.Manschaftsmitglieder.Count(); i++)
+                {
+                    if (temp.Manschaftsmitglieder[i].UserName == tempName && temp.Manschaftsmitglieder[i].Password == tempPass)
+                    {
+                        _eingeloggtesMitglied = temp.Manschaftsmitglieder[i];
+                        return;
+                    }
+                }
+            }
+        } while (wiederholen);
+
     }
     #endregion
 }

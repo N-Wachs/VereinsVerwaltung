@@ -4,7 +4,7 @@ namespace VereinsVerwaltung;
 
 public class Verschlüsselung
 {
-    private static string Ver(string inhalt, string Key = "?ß*§|oeijsdnmöal.-'")
+    public static string Ver(string inhalt, string Key = "?ß*§|oeijsdnmöal.-'")
     {
         #region Lokale Variablen
         string Verschlüsselt = "";
@@ -33,7 +33,7 @@ public class Verschlüsselung
         return Verschlüsselt;
     }
 
-    private static string Ent(string inhalt, string Key = "?ß*§|oeijsdnmöal.-'")
+    public static string Ent(string inhalt, string Key = "?ß*§|oeijsdnmöal.-'")
     {
         #region Lokale Variablen
         string Entschlüsselt = "";
