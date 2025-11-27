@@ -1,4 +1,5 @@
-﻿namespace VereinsVerwaltung;
+﻿
+namespace VereinsVerwaltung;
 
 public class Trainer : ManschaftsMitglied
 {
@@ -8,6 +9,7 @@ public class Trainer : ManschaftsMitglied
 
     #region Assessoren/Modifikatoren
     public Manschaft ZugeordneteManschaft => _zugeordneteManschaft;
+    public string Menu => "(1) Alle Spieler anzeigen\n(2) Spieler verwalten\n(3) Ausloggen";
     #endregion
 
     #region Konstruktoren

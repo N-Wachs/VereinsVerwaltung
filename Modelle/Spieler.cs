@@ -1,4 +1,6 @@
-﻿namespace VereinsVerwaltung;
+﻿using System.ComponentModel.Design;
+
+namespace VereinsVerwaltung;
 
 public class Spieler : ManschaftsMitglied
 {
@@ -18,6 +20,7 @@ public class Spieler : ManschaftsMitglied
             return _pass;
         }
     }
+    public string Menu => "(1) Spieler pass einlesen\n(2) Ausloggen";
     #endregion
 
     #region Konstruktoren
@@ -36,35 +39,5 @@ public class Spieler : ManschaftsMitglied
     #endregion
 
     #region Methoden
-    public bool PassLaden()
-    {
-        bool erfolg = false;
-
-        if (Directory.Exists("Spieler"))
-        {
-            if (Directory.Exists("Spieler\\Spielerpaesse"))
-            {
-                string dateiPfad = Path.Combine("Spieler\\Spielerpaesse", $"{base.UserName}_pass.json");
-                if (File.Exists(dateiPfad))
-                {
-                    string jsonInhalt = File.ReadAllText(dateiPfad);
-                    _pass = System.Text.Json.JsonSerializer.Deserialize<Spielerpass>(jsonInhalt) ?? new Spielerpass();
-                    erfolg = true;
-                }
-            }
-            else             {
-                Directory.CreateDirectory("Spieler\\Spielerpaesse");
-                erfolg = false;
-            }
-        }
-        else
-        {
-            Directory.CreateDirectory("Spieler");
-            Directory.CreateDirectory("Spieler\\Spielerpaesse");
-            erfolg = false;
-        }
-
-        return erfolg;
-    }
     #endregion
 }

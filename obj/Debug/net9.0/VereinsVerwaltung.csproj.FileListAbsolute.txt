@@ -2,3 +2,13 @@
 \\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.AssemblyInfoInputs.cache
 \\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.AssemblyInfo.cs
 \\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.csproj.CoreCompileInputs.cache
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\bin\Debug\net9.0\VereinsVerwaltung.exe
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\bin\Debug\net9.0\VereinsVerwaltung.deps.json
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\bin\Debug\net9.0\VereinsVerwaltung.runtimeconfig.json
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\bin\Debug\net9.0\VereinsVerwaltung.dll
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\bin\Debug\net9.0\VereinsVerwaltung.pdb
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.dll
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\refint\VereinsVerwaltung.dll
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.pdb
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\VereinsVerwaltung.genruntimeconfig.cache
+\\BK174518\n.wachs2\Download\VereinsVerwaltung-master\VereinsVerwaltung-master\obj\Debug\net9.0\ref\VereinsVerwaltung.dll

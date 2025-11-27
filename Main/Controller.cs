@@ -1,5 +1,4 @@
-﻿
-namespace VereinsVerwaltung;
+﻿namespace VereinsVerwaltung;
 
 public class Controller
 {
@@ -33,6 +32,7 @@ public class Controller
         #region Lokale Variablen
         bool wiederholen = true;
         bool richtigeEingabe = true;
+        string hauptmenue = string.Empty;
         #endregion
 
         _interface.CursorVisible = false;
@@ -55,26 +55,24 @@ public class Controller
 
         do
         {
-            // Hauptmenü anzeigen basierend auf Mitgliedstyp
+            // Überprüfen ob ein Mitglied eingeloggt ist.
             if (_eingeloggtesMitglied != null && _eingeloggtesMitglied.IstEingeloggt)
             {
-                switch (_eingeloggtesMitglied)
+                // Überprüfen welche art an Mitglied eingeloggt ist
+                if (_eingeloggtesMitglied is Trainer)
                 {
-                    case Trainer trainer:
-                        _interface.AnzeigeHauptmenueTrainer(trainer.UserName);
-                        break;
-                    case Spieler spieler:
-                        _interface.AnzeigeHauptmenueSpieler(spieler.UserName);
-                        break;
-                    default:
-                        _interface.AnzeigeHauptmenueSpieler(_eingeloggtesMitglied.UserName);
-                        break;
+                    hauptmenue = ((Trainer)_eingeloggtesMitglied).Menu;
+                }
+                else if (_eingeloggtesMitglied is Spieler)
+                {
+                    hauptmenue = ((Spieler)_eingeloggtesMitglied).Menu;
                 }
             }
             else
             {
                 // Einloggen
                 Login();
+                continue;
             }
 
             // Mögliche Wiederholung basierend auf falscher Eingabe
