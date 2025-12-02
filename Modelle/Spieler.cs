@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.Design;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace VereinsVerwaltung;
 
@@ -20,7 +22,6 @@ public class Spieler : ManschaftsMitglied
             return _pass;
         }
     }
-    public string Menu => "(1) Spieler pass einlesen\n(2) Ausloggen";
     #endregion
 
     #region Konstruktoren
@@ -28,10 +29,18 @@ public class Spieler : ManschaftsMitglied
     {
         _pass = new Spielerpass();
     }
-    public Spieler(Spielerpass pass) : base()
+
+    [JsonConstructor]
+    public Spieler(string benutzername, string vorname, string nachname, string passwort) : base(benutzername, vorname, nachname, passwort, false)
     {
-        _pass = pass;
+        _pass = new Spielerpass();
     }
+
+    public Spieler(string benutzername, string vorname, string nachname, string passwort, Spielerpass spielerpass) : base(benutzername, vorname, nachname, passwort, false)
+    {
+        _pass = spielerpass;
+    }
+
     public Spieler(Spieler andererSpieler) : base(andererSpieler)
     {
         _pass = andererSpieler.Pass;
@@ -39,5 +48,6 @@ public class Spieler : ManschaftsMitglied
     #endregion
 
     #region Methoden
+    public string Anzeigen() => $"== Spieler: {Vorname} {Nachname} ==\n{Pass.Anzeigen()}\n====================";
     #endregion
 }

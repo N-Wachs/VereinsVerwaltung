@@ -1,4 +1,5 @@
 ﻿
+
 namespace VereinsVerwaltung;
 
 public class UserInterface
@@ -53,7 +54,7 @@ public class UserInterface
         WriteLine("5. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option...");
-        while (GetKey().KeyChar < '6' && _pressed.KeyChar > '0') ;
+        while (!(GetKey().KeyChar < '6' && _pressed.KeyChar > '0')) ;
     }
     public void AnzeigeHauptmenueTrainer(string userName)
     {
@@ -69,7 +70,7 @@ public class UserInterface
         WriteLine("6. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option: ");
-        while (GetKey().KeyChar < '7' && _pressed.KeyChar > '0') ;
+        while (!(GetKey().KeyChar < '7' && _pressed.KeyChar > '0')) ;
     }
 
     public ConsoleKeyInfo GetKey(bool eingreifen = true) => _pressed = Console.ReadKey(eingreifen);
@@ -102,6 +103,7 @@ public class UserInterface
         {
             wiederholen = false;
 
+            CursorVisible = true;
             Clear();
             Color = ConsoleColor.Cyan;
             WriteLine("==== Einlogen ====");
@@ -122,6 +124,8 @@ public class UserInterface
                 Thread.Sleep(2000);
             }
 
+            WriteLine();
+            WriteLine("Bitte Password eingeben:");
             if (password.Length <= 0 && !wiederholen) 
                 password = Verschlüsselung.Ver(ReadLine());
 
@@ -129,15 +133,27 @@ public class UserInterface
             {
                 wiederholen = true;
                 Color = ConsoleColor.Red;
+                CursorVisible = false;
                 WriteLine("Password zu kurz!");
                 ResetColor();
                 username = string.Empty;
                 Thread.Sleep(2000);
             }
-
         } while (wiederholen);
 
+        CursorVisible = false;
         return (username, password);
+    }
+
+    public void AnzeigeAlleSpielerPässe(List<Spieler> spielerListe)
+    {
+        foreach (var spieler in spielerListe)
+        {
+            WriteLine(spieler.Anzeigen() + "\n");
+        }
+        WriteLine("\n");
+        WriteLine("Drücken Sie Enter um fortzufahren...");
+        while (GetKey().Key != ConsoleKey.Enter) ;
     }
     #endregion
 }

@@ -1,21 +1,23 @@
-﻿namespace VereinsVerwaltung;
+﻿using System.Text.Json.Serialization;
+
+namespace VereinsVerwaltung;
 
 public class ManschaftsMitglied
 {
     #region Eigenschaften
     private string _userName;
+    private string _nachname;
+    private string _vorname;
     private string _password;
     private bool _istEingeloggt;
     #endregion
 
     #region Assessoren/Modifikatoren
-    public string UserName 
-    { 
-        get => _userName; 
-        set => _userName = _istEingeloggt ? value : _userName; 
-    }
-    public string Password => _istEingeloggt ? _password : string.Empty;
-    public bool IstEingeloggt => _istEingeloggt;
+    public string UserName { get => _userName; set => _userName = value; }
+    public string Nachname { get => _nachname; set => _nachname = value; }
+    public string Vorname { get => _vorname; set => _vorname = value; }
+    public string Password { get => _password; set => _password = value; }
+    public bool IstEingeloggt { get => _istEingeloggt; set => _istEingeloggt = value; }
     #endregion
 
     #region Konstruktoren
@@ -23,19 +25,28 @@ public class ManschaftsMitglied
     {
         _userName = string.Empty;
         _password = string.Empty;
+        _vorname = string.Empty;
+        _nachname = string.Empty;
         _istEingeloggt = false;
     }
-    public ManschaftsMitglied(string userName, string password, bool istEingelogt)
+    
+    [JsonConstructor]
+    public ManschaftsMitglied(string userName, string vorname, string nachname, string password, bool istEingelogt)
     {
         _userName = userName;
+        _vorname = vorname;
+        _nachname = nachname;
         _password = password;
         _istEingeloggt = istEingelogt;
     }
+    
     public ManschaftsMitglied(ManschaftsMitglied anderesMitglied)
     {
-        _userName = anderesMitglied.UserName;
+        _userName = anderesMitglied._userName;
+        _vorname = anderesMitglied._vorname;
+        _nachname = anderesMitglied._nachname;
         _password = anderesMitglied._password;
-        _istEingeloggt = anderesMitglied.IstEingeloggt;
+        _istEingeloggt = anderesMitglied._istEingeloggt;
     }
     #endregion
 
@@ -47,16 +58,20 @@ public class ManschaftsMitglied
             _istEingeloggt = true;
             return true;
         }
-        else
-        {
-            _istEingeloggt = false;
-            return false;
-        }
+        
+        _istEingeloggt = false;
+        return false;
     }
 
-    public void Ausloggen()
+    public void Ausloggen() => _istEingeloggt = false;
+    
+    public bool AendereUsername(string neuerUsername)
     {
-        _istEingeloggt = false;
+        if (!_istEingeloggt || string.IsNullOrWhiteSpace(neuerUsername))
+            return false;
+        
+        _userName = neuerUsername;
+        return true;
     }
     #endregion
 }
