@@ -1,6 +1,4 @@
-﻿
-
-namespace VereinsVerwaltung;
+﻿namespace VereinsVerwaltung;
 
 public class UserInterface
 {
@@ -64,6 +62,23 @@ public class UserInterface
         WriteLine("=== Hauptmenü ===");
         WriteLine("1. Spielerpässe anzeigen");
         WriteLine("2. Spieler verwalten");
+        WriteLine("3. Nutzernamen ändern");
+        WriteLine("4. Datenlöschung beantragen");
+        WriteLine("5. Ausgelogt Beenden");
+        WriteLine("6. Eingelogt Beenden");
+        WriteLine();
+        Write("Bitte wählen Sie eine Option: ");
+        while (!(GetKey().KeyChar < '7' && _pressed.KeyChar > '0')) ;
+    }
+
+    public void AnzeigeHauptmenueBetreuer(string userName)
+    {
+        Clear();
+        WriteLine($"Willkommen, {userName}");
+        WriteLine();
+        WriteLine("=== Hauptmenü ===");
+        WriteLine("1. Spieler behandeln");
+        WriteLine("2. Behandlungsstatistik anzeigen");
         WriteLine("3. Nutzernamen ändern");
         WriteLine("4. Datenlöschung beantragen");
         WriteLine("5. Ausgelogt Beenden");
