@@ -167,6 +167,7 @@ public class UserInterface
             WriteLine(spieler.Anzeigen() + "\n");
         }
         WriteLine("\n");
+        WriteLine("^ Sie müssen ggf. scrollen ^");
         WriteLine("Drücken Sie Enter um fortzufahren...");
         while (GetKey().Key != ConsoleKey.Enter) ;
     }

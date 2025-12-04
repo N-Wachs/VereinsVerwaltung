@@ -36,6 +36,6 @@ public class Spielerpass
     #endregion
 
     #region Methoden
-    public string Anzeigen() => $"Nationalität: {_nationalitaet}\nAnzahl Behandlungen: {_anzahlBehandlungen}\nAnzahl Tore: {_anzahlTore}";
+    public string Anzeigen() => $"Nationalität: {Nationalitaet}\nAnzahl Behandlungen: {AnzahlBehandlungen}\nAnzahl Tore: {AnzahlTore}";
     #endregion
 }

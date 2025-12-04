@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Globalization;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace VereinsVerwaltung;
 
@@ -11,17 +9,7 @@ public class Spieler : ManschaftsMitglied
     #endregion
 
     #region Assessoren/Modifikatoren
-    public Spielerpass Pass
-    {
-        get
-        {
-            if (_pass == null || !base.IstEingeloggt)
-            {
-                return new Spielerpass();
-            }
-            return _pass;
-        }
-    }
+    public Spielerpass Pass { get => _pass; set => _pass = value; }
     #endregion
 
     #region Konstruktoren
