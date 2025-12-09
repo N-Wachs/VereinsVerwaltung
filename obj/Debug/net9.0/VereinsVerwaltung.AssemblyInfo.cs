@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VereinsVerwaltung")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+137cd102bd0f8f1a81ae685a7dd1fa7ffae92c9b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac385c6afd072d05ab35dbaa6de79e0a6bd756fd")]
 [assembly: System.Reflection.AssemblyProductAttribute("VereinsVerwaltung")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VereinsVerwaltung")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
