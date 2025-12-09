@@ -52,7 +52,7 @@ public class UserInterface
         WriteLine("5. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option...");
-        while (!(GetKey().KeyChar < '6' && _pressed.KeyChar > '0')) ;
+        while (!(GetKey().KeyChar < '6' && Pressed.KeyChar > '0')) ;
     }
     public void AnzeigeHauptmenueTrainer(string userName)
     {
@@ -68,9 +68,8 @@ public class UserInterface
         WriteLine("6. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option: ");
-        while (!(GetKey().KeyChar < '7' && _pressed.KeyChar > '0')) ;
+        while (!(GetKey().KeyChar < '7' && Pressed.KeyChar > '0')) ;
     }
-
     public void AnzeigeHauptmenueBetreuer(string userName)
     {
         Clear();
@@ -85,11 +84,28 @@ public class UserInterface
         WriteLine("6. Eingelogt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option: ");
-        while (!(GetKey().KeyChar < '7' && _pressed.KeyChar > '0')) ;
+        while (!(GetKey().KeyChar < '7' && Pressed.KeyChar > '0')) ;
     }
 
     public ConsoleKeyInfo GetKey(bool eingreifen = true) => _pressed = Console.ReadKey(eingreifen);
-    public string ReadLine() => Console.ReadLine() ?? string.Empty;
+    public string ReadLine() 
+    {
+        // Ursprünglichen Cursor-Zustand speichern
+        bool cursorVorher = CursorVisible;
+
+        // Cursor sichtbar machen, falls er vorher nicht sichtbar war
+        if (!cursorVorher) 
+         CursorVisible = true;
+
+        // Eingabe lesen
+        string value = Console.ReadLine() ?? string.Empty;
+
+        // Ursprünglichen Cursor-Zustand wiederherstellen
+        CursorVisible = cursorVorher;
+
+        // Eingabewert zurückgeben
+        return value;
+    } 
 
     public void WriteLine(string text) => Console.WriteLine(text);
     public void WriteLine() => Console.WriteLine();
@@ -101,11 +117,16 @@ public class UserInterface
 
     public void ResetColor() => Color = ConsoleColor.White;
 
-    public void Goodbye()
+    public void Goodbye(bool eingeloggtBeenden)
     {
         Clear();
         Color = ConsoleColor.Green;
+        if (eingeloggtBeenden)
+            WriteLine("Sie haben sich erfolgreich ausgeloggt.");
+        else
+            WriteLine("Sie werden beim nächsten mal wieder eingeloggt.");
         WriteLine("Auf Wiedersehen!");
+        ResetColor();
     }
 
     public (string username, string password) AnzeigeLogin()
@@ -164,11 +185,78 @@ public class UserInterface
     {
         foreach (var spieler in spielerListe)
         {
-            WriteLine(spieler.Anzeigen() + "\n");
+            SpielerPassAnzeigen(spieler);
         }
         WriteLine("\n");
         WriteLine("Drücken Sie Enter um fortzufahren...");
         while (GetKey().Key != ConsoleKey.Enter) ;
     }
+    public void SpielerPassAnzeigen(Spieler spieler) => WriteLine(spieler.Anzeigen());
+    /// <summary>
+    /// Zeigt den eigenen Spielerpass des eingeloggten Spielers an.
+    /// Nur für Spieler verfügbar.
+    /// </summary>
+    public void EigenenSpielerpassAnzeigen(Spieler spieler)
+    {
+        Clear();
+        Color = ConsoleColor.Cyan;
+        WriteLine("=== Mein Spielerpass ===");
+        ResetColor();
+        WriteLine();
+
+        // Persönliche Informationen
+        Color = ConsoleColor.Yellow;
+        WriteLine("Persönliche Daten:");
+        ResetColor();
+        WriteLine($"Name: {spieler.Vorname} {spieler.Nachname}");
+        WriteLine($"Username: {spieler.UserName}");
+        WriteLine();
+
+        // Spielerpass-Daten
+        Color = ConsoleColor.Yellow;
+        WriteLine("Spielerpass:");
+        ResetColor();
+        WriteLine($"Nationalität: {spieler.Pass.Nationalitaet}");
+        WriteLine($"Anzahl Tore: {spieler.Pass.AnzahlTore}");
+        WriteLine($"Anzahl Behandlungen: {spieler.Pass.AnzahlBehandlungen}");
+        WriteLine();
+
+        // Statistiken
+        Color = ConsoleColor.Yellow;
+        WriteLine("Statistiken:");
+        ResetColor();
+
+        double toreProBehandlung = spieler.Pass.AnzahlBehandlungen > 0
+            ? (double)spieler.Pass.AnzahlTore / spieler.Pass.AnzahlBehandlungen
+            : spieler.Pass.AnzahlTore;
+        WriteLine($"Tore pro Behandlung: {toreProBehandlung:F2}");
+
+        // Leistungsbewertung
+        if (spieler.Pass.AnzahlTore >= 20)
+        {
+            Color = ConsoleColor.Green;
+            WriteLine("\nStatus: Topspieler");
+            ResetColor();
+        }
+        else if (spieler.Pass.AnzahlTore >= 10)
+        {
+            Color = ConsoleColor.Cyan;
+            WriteLine("\nStatus: Stammspieler");
+            ResetColor();
+        }
+        else if (spieler.Pass.AnzahlTore >= 5)
+        {
+            WriteLine("\nStatus: Aktiver Spieler");
+        }
+        else
+        {
+            WriteLine("\nStatus: Nachwuchsspieler");
+        }
+
+        WriteLine();
+        WriteLine("Drücken Sie eine beliebige Taste zum Fortfahren...");
+        GetKey();
+    }
+
     #endregion
 }

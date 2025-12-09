@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace VereinsVerwaltung;
+﻿namespace VereinsVerwaltung;
 
 /// <summary>
 /// Repräsentiert einen Betreuer, der Spieler medizinisch versorgt und behandelt.
@@ -20,26 +18,22 @@ public class Betreuer : ManschaftsMitglied
     /// <summary>
     /// Fachgebiet des Betreuers.
     /// </summary>
-    public string Fachgebiet 
-    { 
-        get => _fachgebiet; 
-        set => _fachgebiet = IstEingeloggt ? value : _fachgebiet; 
-    }
-    
+    public string Fachgebiet { get => _fachgebiet; set => _fachgebiet = value; }
+
     /// <summary>
     /// Jahre an Erfahrung als Betreuer.
     /// </summary>
-    public int JahreErfahrung => _jahreErfahrung;
+    public int JahreErfahrung { get => _jahreErfahrung; set => _jahreErfahrung = value; }
     
     /// <summary>
     /// Gesamtanzahl der durchgeführten Behandlungen.
     /// </summary>
-    public int AnzahlBehandlungenGesamt => _anzahlBehandlungenGesamt;
-    
+    public int AnzahlBehandlungenGesamt { get => _anzahlBehandlungenGesamt; set => _anzahlBehandlungenGesamt = value; }
+
     /// <summary>
     /// Einstellungsdatum des Betreuers.
     /// </summary>
-    public DateTime Einstellungsdatum => _einstellungsdatum;
+    public DateTime Einstellungsdatum { get => _einstellungsdatum; set => _einstellungsdatum = value; }
     #endregion
 
     #region Konstruktoren
@@ -52,21 +46,6 @@ public class Betreuer : ManschaftsMitglied
         _jahreErfahrung = 0;
         _anzahlBehandlungenGesamt = 0;
         _einstellungsdatum = DateTime.Now;
-    }
-
-    /// <summary>
-    /// Json Konstruktor für Deserialisierung.
-    /// </summary>
-    [JsonConstructor]
-    public Betreuer(string userName, string vorname, string nachname, string password,
-                    string fachgebiet, int jahreErfahrung, int anzahlBehandlungenGesamt,
-                    DateTime einstellungsdatum)
-                    : base(userName, vorname, nachname, password, false)
-    {
-        _fachgebiet = fachgebiet;
-        _jahreErfahrung = jahreErfahrung;
-        _anzahlBehandlungenGesamt = anzahlBehandlungenGesamt;
-        _einstellungsdatum = einstellungsdatum;
     }
 
     /// <summary>
@@ -114,7 +93,7 @@ public class Betreuer : ManschaftsMitglied
     /// </summary>
     /// <param name="spieler">Der zu behandelnde Spieler</param>
     /// <returns>True wenn die Behandlung erfolgreich war, sonst false</returns>
-    public bool SpielerBehandeln(Spieler spieler)
+    public bool SpielerBehandeln(ref Spieler spieler)
     {
         if (!IstEingeloggt || spieler == null)
             return false;
@@ -134,7 +113,7 @@ public class Betreuer : ManschaftsMitglied
     /// <param name="spieler">Der zu behandelnde Spieler</param>
     /// <param name="diagnose">Diagnose oder Behandlungsnotiz</param>
     /// <returns>True wenn die Behandlung erfolgreich war, sonst false</returns>
-    public bool SpielerBehandeln(Spieler spieler, string diagnose)
+    public bool SpielerBehandeln(ref Spieler spieler, string diagnose)
     {
         if (!IstEingeloggt || spieler == null || string.IsNullOrWhiteSpace(diagnose))
             return false;

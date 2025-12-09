@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Globalization;
-using System.Text.Json.Serialization;
-
-namespace VereinsVerwaltung;
+﻿namespace VereinsVerwaltung;
 
 public class Spieler : ManschaftsMitglied
 {
@@ -11,27 +7,11 @@ public class Spieler : ManschaftsMitglied
     #endregion
 
     #region Assessoren/Modifikatoren
-    public Spielerpass Pass
-    {
-        get
-        {
-            if (_pass == null || !base.IstEingeloggt)
-            {
-                return new Spielerpass();
-            }
-            return _pass;
-        }
-    }
+    public Spielerpass Pass { get => _pass; set => _pass = value; }
     #endregion
 
     #region Konstruktoren
     public Spieler() : base()
-    {
-        _pass = new Spielerpass();
-    }
-
-    [JsonConstructor]
-    public Spieler(string benutzername, string vorname, string nachname, string passwort) : base(benutzername, vorname, nachname, passwort, false)
     {
         _pass = new Spielerpass();
     }

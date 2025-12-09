@@ -1,61 +1,43 @@
-﻿namespace VereinsVerwaltung;
+﻿using System.Xml.Serialization;
+
+namespace VereinsVerwaltung;
 
 public class Controller
 {
     #region Eigenschaften
     private UserInterface _interface;
-    private List<ManschaftsMitglied> _mitglieder;
+    private Manschaft _manschaft;
     private ManschaftsMitglied? _eingeloggtesMitglied;
-    private MitgliederRepository _repository;
     #endregion
 
     #region Assessoren/Modifikatoren
-    public UserInterface Interface => _interface;
-    public ManschaftsMitglied? EingeloggtesMitglied => _eingeloggtesMitglied;
+    private UserInterface Interface { get => _interface; set => _interface = value; }
+    private ManschaftsMitglied? EingeloggtesMitglied { get => _eingeloggtesMitglied; set => _eingeloggtesMitglied = value; }
+    private List<ManschaftsMitglied> Mitglieder => _manschaft.GetMitglieder();
+    private Manschaft AktuelleManschaft { get => _manschaft; set => _manschaft = value; }
     #endregion
 
-    #region Konstruktoren
+    #region Konstruktor
     public Controller()
     {
         _interface = new UserInterface();
-        _repository = new MitgliederRepository();
-        _mitglieder = new List<ManschaftsMitglied>();
+        if (Path.Exists("Mitglieder"))
+            _manschaft = new Manschaft("Mitglieder");
+        else 
+            _manschaft = new Manschaft();
         _eingeloggtesMitglied = null;
 
-        #region Mitglieder laden oder Testwerte erstellen
-        // Versuche gespeicherte Mitglieder zu laden
-        // _mitglieder = _repository.LadeAlleMitglieder();
-        
-        // Falls keine Mitglieder vorhanden, erstelle Testwerte
-        if (_mitglieder.Count == 0)
+        if (File.Exists("Mitglieder/eingeloggt.xml"))
         {
-            // Trainer
-            _mitglieder.Add(new Trainer("sabineschulz", "Sabine", "Schulz", Verschlüsselung.Ver("Sabine"), 12, "Taktik", 82000));
-            _mitglieder.Add(new Trainer("lucasengel", "Lucas", "Engel", Verschlüsselung.Ver("Lucas"), 3, "Fitness", 55000));
+            // Eingeloggtes Mitglied aus XML-Datei laden
+            StreamReader reader = new StreamReader("Mitglieder/eingeloggt.xml");
+            string xmlInhalt = reader.ReadToEnd();
+            reader.Close();
 
-            // Spieler
-            _mitglieder.Add(new Spieler("erikbecker", "Erik", "Becker", Verschlüsselung.Ver("Erik"),
-                new Spielerpass(0, 2, "Deutschland")));
-
-            _mitglieder.Add(new Spieler("tomschmidt", "Tom", "Schmidt", Verschlüsselung.Ver("Tom"),
-                new Spielerpass(4, 15, "Deutschland")));
-
-            _mitglieder.Add(new Spieler("leonweiss", "Leon", "Weiss", Verschlüsselung.Ver("Leon"),
-                new Spielerpass(10, 22, "Österreich")));
-
-            _mitglieder.Add(new Spieler("danielkurt", "Daniel", "Kurt", Verschlüsselung.Ver("Daniel"),
-                new Spielerpass(2, 10, "Schweiz")));
-
-            _mitglieder.Add(new Spieler("marcobrecht", "Marco", "Brecht", Verschlüsselung.Ver("Marco"),
-                new Spielerpass(7, 18, "Deutschland")));
-
-            // Betreuer
-            _mitglieder.Add(new Betreuer("jennifermeyer", "Jennifer", "Meyer", Verschlüsselung.Ver("Jennifer"),
-                "Physiotherapie", 5));
-            // Speichere Testwerte
-            // _repository.SpeichereAlleMitglieder(_mitglieder);
+            // Deserialisierung des eingeloggten Mitglieds
+            XmlSerializer serializer = new XmlSerializer(typeof(ManschaftsMitglied), new Type[] { typeof(Trainer), typeof(Spieler), typeof(Betreuer) });
+            EingeloggtesMitglied = (ManschaftsMitglied?)serializer.Deserialize(new StringReader(xmlInhalt));
         }
-        #endregion
     }
     #endregion
 
@@ -67,15 +49,12 @@ public class Controller
         bool beendenEingellogt = false;
         #endregion
 
-        _interface.CursorVisible = false;
-
-        // Überprüfen ob ein User schon eingeloggt ist
-        // _eingeloggtesMitglied = _repository.LadeEingeloggtesMitglied();
+        Interface.CursorVisible = false;
 
         do
         {
             // Überprüfen ob ein Mitglied eingeloggt ist.
-            if (!(_eingeloggtesMitglied != null && _eingeloggtesMitglied.IstEingeloggt))
+            if (!(EingeloggtesMitglied != null && EingeloggtesMitglied.IstEingeloggt))
             {
                 Login();
                 continue;
@@ -85,9 +64,9 @@ public class Controller
             if (EingeloggtesMitglied is Trainer)
             {
                 // Hauptmenü für Trainer
-                _interface.AnzeigeHauptmenueTrainer(EingeloggtesMitglied.Vorname + " " + EingeloggtesMitglied.Nachname);
+                Interface.AnzeigeHauptmenueTrainer(EingeloggtesMitglied.Vorname + " " + EingeloggtesMitglied.Nachname);
 
-                switch (_interface.Pressed.KeyChar)
+                switch (Interface.Pressed.KeyChar)
                 {
                     case '1':
                         AlleSpielerPaesseAnzeigen();
@@ -124,13 +103,13 @@ public class Controller
             else if (EingeloggtesMitglied is Spieler spieler)
             {
                 // Hauptmenü für Spieler
-                _interface.AnzeigeHauptmenueSpieler(spieler.Vorname + " " + spieler.Nachname);
+                Interface.AnzeigeHauptmenueSpieler(spieler.Vorname + " " + spieler.Nachname);
                 
-                switch (_interface.Pressed.KeyChar)
+                switch (Interface.Pressed.KeyChar)
                 {
                     case '1':
                         // Spielerpass anzeigen
-                        EigenenSpielerpassAnzeigen(spieler);
+                        Interface.EigenenSpielerpassAnzeigen(spieler);
                         break;
                     case '2':
                         // Nutzernamen ändern
@@ -155,9 +134,9 @@ public class Controller
             else if (EingeloggtesMitglied is Betreuer betreuer)
             {
                 // Hauptmenü für Betreuer
-                _interface.AnzeigeHauptmenueBetreuer(betreuer.Vorname + " " + betreuer.Nachname);
+                Interface.AnzeigeHauptmenueBetreuer(betreuer.Vorname + " " + betreuer.Nachname);
                 
-                switch (_interface.Pressed.KeyChar)
+                switch (Interface.Pressed.KeyChar)
                 {
                     case '1':
                         // Spieler behandeln
@@ -189,26 +168,37 @@ public class Controller
             }
             else
             {
-                // Hauptmenü für noch kommenden Sanitäter oder andere Rollen
+                // Theoretisch nie erreichbar - aber für den Fall der Fälle
+                Interface.Color = ConsoleColor.Red;
+                Interface.WriteLine("Unbekannter Mitgliedstyp! Bitte kontaktieren Sie den Administrator.");
+                Interface.ResetColor();
+                Thread.Sleep(3000);
+                Interface.WriteLine("Beenden der Sitzung mit Enter?");
+                while (Interface.GetKey().Key != ConsoleKey.Enter) ;
+                beendenEingellogt = false;
+                wiederholen = false;
             }
         } while (wiederholen);
 
-        #region Speichern beim Beenden
-        if (beendenEingellogt && _eingeloggtesMitglied != null)
+        if (!beendenEingellogt)
         {
-            // _repository.SpeichereEingeloggtesMitglied(_eingeloggtesMitglied);
+            // Mitglied ausloggen
+            if (EingeloggtesMitglied != null)
+            {
+                EingeloggtesMitglied.Ausloggen();
+                EingeloggtesMitglied = null;
+                File.Delete("Mitglieder/eingeloggt.xml");
+            }
         }
         else
         {
-            // _repository.LoescheEingeloggtesMitglied();
+            AktuelleManschaft.EingeloggtesMitgliedSpeichern(EingeloggtesMitglied);
         }
-        
-        // Speichere alle Änderungen an Mitgliedern
-        // _repository.SpeichereAlleMitglieder(_mitglieder);
 
-        _interface.Goodbye();
-        Thread.Sleep(2000);
-        #endregion
+        AktuelleManschaft.MitgliederSpeichern();
+
+        Interface.Goodbye(beendenEingellogt);
+        Thread.Sleep(3000);
     }
     
     /// <summary>
@@ -219,8 +209,8 @@ public class Controller
         List<Spieler> spielerListe = new List<Spieler>();
         
         // Alle Spieler aus der Mitgliederliste filtern
-        _interface.Clear();
-        foreach (var mitglied in _mitglieder)
+        Interface.Clear();
+        foreach (var mitglied in Mitglieder)
         {
             if (mitglied is Spieler spieler)
             {
@@ -228,76 +218,7 @@ public class Controller
             }
         }
         
-        _interface.AnzeigeAlleSpielerPässe(spielerListe);
-    }
-
-    /// <summary>
-    /// Zeigt den eigenen Spielerpass des eingeloggten Spielers an.
-    /// Nur für Spieler verfügbar.
-    /// </summary>
-    private void EigenenSpielerpassAnzeigen(Spieler spieler)
-    {
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Cyan;
-        _interface.WriteLine("=== Mein Spielerpass ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
-        
-        // Persönliche Informationen
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine("Persönliche Daten:");
-        _interface.ResetColor();
-        _interface.WriteLine($"Name: {spieler.Vorname} {spieler.Nachname}");
-        _interface.WriteLine($"Username: {spieler.UserName}");
-        _interface.WriteLine();
-        
-        // Spielerpass-Daten
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine("Spielerpass:");
-        _interface.ResetColor();
-        _interface.WriteLine($"Nationalität: {spieler.Pass.Nationalitaet}");
-        _interface.WriteLine($"Anzahl Tore: {spieler.Pass.AnzahlTore}");
-        _interface.WriteLine($"Anzahl Behandlungen: {spieler.Pass.AnzahlBehandlungen}");
-        _interface.WriteLine();
-        
-        // Statistiken
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine("Statistiken:");
-        _interface.ResetColor();
-        
-        if (spieler.Pass.AnzahlTore > 0)
-        {
-            double toreProBehandlung = spieler.Pass.AnzahlBehandlungen > 0 
-                ? (double)spieler.Pass.AnzahlTore / spieler.Pass.AnzahlBehandlungen 
-                : spieler.Pass.AnzahlTore;
-            _interface.WriteLine($"Tore pro Behandlung: {toreProBehandlung:F2}");
-        }
-        
-        // Leistungsbewertung
-        if (spieler.Pass.AnzahlTore >= 20)
-        {
-            _interface.Color = ConsoleColor.Green;
-            _interface.WriteLine("\nStatus: Topspieler");
-            _interface.ResetColor();
-        }
-        else if (spieler.Pass.AnzahlTore >= 10)
-        {
-            _interface.Color = ConsoleColor.Cyan;
-            _interface.WriteLine("\nStatus: Stammspieler");
-            _interface.ResetColor();
-        }
-        else if (spieler.Pass.AnzahlTore >= 5)
-        {
-            _interface.WriteLine("\nStatus: Aktiver Spieler");
-        }
-        else
-        {
-            _interface.WriteLine("\nStatus: Nachwuchsspieler");
-        }
-        
-        _interface.WriteLine();
-        _interface.WriteLine("Drücken Sie eine beliebige Taste zum Fortfahren...");
-        _interface.GetKey();
+        Interface.AnzeigeAlleSpielerPässe(spielerListe);
     }
 
     /// <summary>
@@ -311,22 +232,22 @@ public class Controller
         do
         {
             // Verwaltungsmenü anzeigen
-            _interface.Clear();
-            _interface.Color = ConsoleColor.Cyan;
-            _interface.WriteLine("=== Spieler Verwalten ===");
-            _interface.ResetColor();
-            _interface.WriteLine();
-            _interface.WriteLine("1. Neuen Spieler hinzufügen");
-            _interface.WriteLine("2. Spieler bearbeiten");
-            _interface.WriteLine("3. Spieler löschen");
-            _interface.WriteLine("4. Alle Spieler anzeigen");
-            _interface.WriteLine("5. Zurück zum Hauptmenü");
-            _interface.WriteLine();
-            _interface.Write("Bitte wählen Sie eine Option: ");
+            Interface.Clear();
+            Interface.Color = ConsoleColor.Cyan;
+            Interface.WriteLine("=== Spieler Verwalten ===");
+            Interface.ResetColor();
+            Interface.WriteLine();
+            Interface.WriteLine("1. Neuen Spieler hinzufügen");
+            Interface.WriteLine("2. Spieler bearbeiten");
+            Interface.WriteLine("3. Spieler löschen");
+            Interface.WriteLine("4. Alle Spieler anzeigen");
+            Interface.WriteLine("5. Zurück zum Hauptmenü");
+            Interface.WriteLine();
+            Interface.Write("Bitte wählen Sie eine Option: ");
             
-            _interface.GetKey();
+            Interface.GetKey();
             
-            switch (_interface.Pressed.KeyChar)
+            switch (Interface.Pressed.KeyChar)
             {
                 case '1':
                     SpielerHinzufuegen();
@@ -344,9 +265,9 @@ public class Controller
                     zurueck = true;
                     break;
                 default:
-                    _interface.Color = ConsoleColor.Red;
-                    _interface.WriteLine("\n\nUngültige Eingabe!");
-                    _interface.ResetColor();
+                    Interface.Color = ConsoleColor.Red;
+                    Interface.WriteLine("\n\nUngültige Eingabe!");
+                    Interface.ResetColor();
                     Thread.Sleep(1500);
                     break;
             }
@@ -358,60 +279,60 @@ public class Controller
     /// </summary>
     private void SpielerHinzufuegen()
     {
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Cyan;
-        _interface.WriteLine("=== Neuen Spieler hinzufügen ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Cyan;
+        Interface.WriteLine("=== Neuen Spieler hinzufügen ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
-        _interface.CursorVisible = true;
+        Interface.CursorVisible = true;
         
         // Benutzername eingeben
-        _interface.Write("Username: ");
-        string username = _interface.ReadLine();
+        Interface.Write("Username: ");
+        string username = Interface.ReadLine();
         
         // Prüfe ob Username bereits existiert
-        foreach (var mitglied in _mitglieder)
+        foreach (var mitglied in Mitglieder)
         {
             if (mitglied.UserName == username)
             {
-                _interface.Color = ConsoleColor.Red;
-                _interface.WriteLine("\n❌ Username existiert bereits!");
-                _interface.ResetColor();
-                _interface.CursorVisible = false;
+                Interface.Color = ConsoleColor.Red;
+                Interface.WriteLine("\nUsername existiert bereits!");
+                Interface.ResetColor();
+                Interface.CursorVisible = false;
                 Thread.Sleep(2000);
                 return;
             }
         }
         
         // Vorname eingeben
-        _interface.Write("Vorname: ");
-        string vorname = _interface.ReadLine();
+        Interface.Write("Vorname: ");
+        string vorname = Interface.ReadLine();
         
         // Nachname eingeben
-        _interface.Write("Nachname: ");
-        string nachname = _interface.ReadLine();
+        Interface.Write("Nachname: ");
+        string nachname = Interface.ReadLine();
         
         // Passwort eingeben
-        _interface.Write("Passwort: ");
-        string passwort = Verschlüsselung.Ver(_interface.ReadLine());
+        Interface.Write("Passwort: ");
+        string passwort = Verschlüsselung.Ver(Interface.ReadLine());
         
         // Nationalität eingeben
-        _interface.Write("Nationalität: ");
-        string nationalitaet = _interface.ReadLine();
+        Interface.Write("Nationalität: ");
+        string nationalitaet = Interface.ReadLine();
         
-        _interface.CursorVisible = false;
+        Interface.CursorVisible = false;
         
         // Neuen Spieler erstellen
         Spieler neuerSpieler = new Spieler(username, vorname, nachname, passwort, 
             new Spielerpass(0, 0, nationalitaet));
         
         // Zur Liste hinzufügen
-        _mitglieder.Add(neuerSpieler);
+        AktuelleManschaft.Add(neuerSpieler);
         
-        _interface.Color = ConsoleColor.Green;
-        _interface.WriteLine("\n✓ Spieler erfolgreich hinzugefügt!");
-        _interface.ResetColor();
+        Interface.Color = ConsoleColor.Green;
+        Interface.WriteLine("\nSpieler erfolgreich hinzugefügt!");
+        Interface.ResetColor();
         Thread.Sleep(2000);
     }
 
@@ -422,7 +343,7 @@ public class Controller
     {
         // Alle Spieler sammeln
         List<Spieler> spielerListe = new List<Spieler>();
-        foreach (var mitglied in _mitglieder)
+        foreach (var mitglied in Mitglieder)
         {
             if (mitglied is Spieler spieler)
             {
@@ -432,98 +353,102 @@ public class Controller
         
         if (spielerListe.Count == 0)
         {
-            _interface.Clear();
-            _interface.Color = ConsoleColor.Yellow;
-            _interface.WriteLine("Keine Spieler vorhanden!");
-            _interface.ResetColor();
+            Interface.Clear();
+            Interface.Color = ConsoleColor.Yellow;
+            Interface.WriteLine("Keine Spieler vorhanden!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
             return;
         }
         
         // Spieler auswählen
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Cyan;
-        _interface.WriteLine("=== Spieler bearbeiten ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Cyan;
+        Interface.WriteLine("=== Spieler bearbeiten ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
         for (int i = 0; i < spielerListe.Count; i++)
         {
-            _interface.WriteLine($"{i + 1}. {spielerListe[i].Vorname} {spielerListe[i].Nachname} ({spielerListe[i].UserName})");
+            Interface.WriteLine($"{i + 1}. {spielerListe[i].Vorname} {spielerListe[i].Nachname} ({spielerListe[i].UserName})");
         }
         
-        _interface.WriteLine();
-        _interface.Write("Wählen Sie einen Spieler (Nummer): ");
+        Interface.WriteLine();
+        Interface.Write("Wählen Sie einen Spieler (Nummer): ");
         
-        if (int.TryParse(_interface.ReadLine(), out int auswahl) && auswahl > 0 && auswahl <= spielerListe.Count)
+        if (int.TryParse(Interface.ReadLine(), out int auswahl) && auswahl > 0 && auswahl <= spielerListe.Count)
         {
             Spieler ausgewaehlterSpieler = spielerListe[auswahl - 1];
             
             // Bearbeitungsoptionen
-            _interface.Clear();
-            _interface.Color = ConsoleColor.Cyan;
-            _interface.WriteLine($"=== {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} bearbeiten ===");
-            _interface.ResetColor();
-            _interface.WriteLine();
-            _interface.WriteLine("1. Tore aktualisieren");
-            _interface.WriteLine("2. Behandlungen aktualisieren");
-            _interface.WriteLine("3. Abbrechen");
-            _interface.WriteLine();
-            _interface.Write("Wählen Sie eine Option: ");
+            Interface.Clear();
+            Interface.Color = ConsoleColor.Cyan;
+            Interface.WriteLine($"=== {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} bearbeiten ===");
+            Interface.ResetColor();
+            Interface.WriteLine();
+            Interface.WriteLine("1. Tore aktualisieren");
+            Interface.WriteLine("2. Behandlungen aktualisieren");
+            Interface.WriteLine("3. Abbrechen");
+            Interface.WriteLine();
+            Interface.Write("Wählen Sie eine Option: ");
             
-            ConsoleKeyInfo key = _interface.GetKey();
-            _interface.WriteLine();
-            _interface.WriteLine();
+            Interface.GetKey();
+            Interface.WriteLine();
+            Interface.WriteLine();
             
-            switch (key.KeyChar)
+            switch (Interface.Pressed.KeyChar)
             {
                 case '1':
-                    _interface.WriteLine($"Aktuelle Tore: {ausgewaehlterSpieler.Pass.AnzahlTore}");
-                    _interface.Write("Neue Anzahl Tore: ");
-                    if (int.TryParse(_interface.ReadLine(), out int neueTore) && neueTore >= 0)
+                    Interface.WriteLine($"Aktuelle Tore: {ausgewaehlterSpieler.Pass.AnzahlTore}");
+                    Interface.Write("Neue Anzahl Tore: ");
+                    if (int.TryParse(Interface.ReadLine(), out int neueTore) && neueTore >= 0)
                     {
                         ausgewaehlterSpieler.Pass.AnzahlTore = neueTore;
-                        _interface.Color = ConsoleColor.Green;
-                        _interface.WriteLine("\nTore erfolgreich aktualisiert!");
-                        _interface.ResetColor();
+                        Interface.Color = ConsoleColor.Green;
+                        Interface.WriteLine("\nTore erfolgreich aktualisiert!");
+                        Interface.ResetColor();
                     }
                     else
                     {
-                        _interface.Color = ConsoleColor.Red;
-                        _interface.WriteLine("\nUngültige Eingabe!");
-                        _interface.ResetColor();
+                        Interface.Color = ConsoleColor.Red;
+                        Interface.WriteLine("\nUngültige Eingabe!");
+                        Interface.ResetColor();
                     }
                     break;
                     
                 case '2':
-                    _interface.WriteLine($"Aktuelle Behandlungen: {ausgewaehlterSpieler.Pass.AnzahlBehandlungen}");
-                    _interface.Write("Neue Anzahl Behandlungen: ");
-                    if (int.TryParse(_interface.ReadLine(), out int neueBehandlungen) && neueBehandlungen >= 0)
+                    Interface.WriteLine($"Aktuelle Behandlungen: {ausgewaehlterSpieler.Pass.AnzahlBehandlungen}");
+                    Interface.Write("Neue Anzahl Behandlungen: ");
+                    if (int.TryParse(Interface.ReadLine(), out int neueBehandlungen) && neueBehandlungen >= 0)
                     {
                         ausgewaehlterSpieler.Pass.AnzahlBehandlungen = neueBehandlungen;
-                        _interface.Color = ConsoleColor.Green;
-                        _interface.WriteLine("\nBehandlungen erfolgreich aktualisiert!");
-                        _interface.ResetColor();
+                        Interface.Color = ConsoleColor.Green;
+                        Interface.WriteLine("\nBehandlungen erfolgreich aktualisiert!");
+                        Interface.ResetColor();
                     }
                     else
                     {
-                        _interface.Color = ConsoleColor.Red;
-                        _interface.WriteLine("\nUngültige Eingabe!");
-                        _interface.ResetColor();
+                        Interface.Color = ConsoleColor.Red;
+                        Interface.WriteLine("\nUngültige Eingabe!");
+                        Interface.ResetColor();
                     }
                     break;
                     
                 case '3':
                     return;
             }
-            
+
+            // Aktualisiere Spieler in der Mannschaftsliste
+            AktuelleManschaft.Rmv(ausgewaehlterSpieler);
+            AktuelleManschaft.Add(ausgewaehlterSpieler);
+
             Thread.Sleep(2000);
         }
         else
         {
-            _interface.Color = ConsoleColor.Red;
-            _interface.WriteLine("\nUngültige Auswahl!");
-            _interface.ResetColor();
+            Interface.Color = ConsoleColor.Red;
+            Interface.WriteLine("\nUngültige Auswahl!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
         }
     }
@@ -535,7 +460,7 @@ public class Controller
     {
         // Alle Spieler sammeln
         List<Spieler> spielerListe = new List<Spieler>();
-        foreach (var mitglied in _mitglieder)
+        foreach (var mitglied in Mitglieder)
         {
             if (mitglied is Spieler spieler)
             {
@@ -543,65 +468,65 @@ public class Controller
             }
         }
         
-        _interface.Clear();
+        Interface.Clear();
 
         if (spielerListe.Count == 0)
         {
-            _interface.Clear();
-            _interface.Color = ConsoleColor.Yellow;
-            _interface.WriteLine("Keine Spieler vorhanden!");
-            _interface.ResetColor();
+            Interface.Clear();
+            Interface.Color = ConsoleColor.Yellow;
+            Interface.WriteLine("Keine Spieler vorhanden!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
             return;
         }
         
         // Spieler auswählen
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Red;
-        _interface.WriteLine("=== Spieler löschen ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Red;
+        Interface.WriteLine("=== Spieler löschen ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
         for (int i = 0; i < spielerListe.Count; i++)
         {
-            _interface.WriteLine($"{i + 1}. {spielerListe[i].Vorname} {spielerListe[i].Nachname} ({spielerListe[i].UserName})");
+            Interface.WriteLine($"{i + 1}. {spielerListe[i].Vorname} {spielerListe[i].Nachname} ({spielerListe[i].UserName})");
         }
         
-        _interface.WriteLine();
-        _interface.Write("Wählen Sie einen Spieler (Nummer): ");
+        Interface.WriteLine();
+        Interface.Write("Wählen Sie einen Spieler (Nummer): ");
         
-        if (int.TryParse(_interface.ReadLine(), out int auswahl) && auswahl > 0 && auswahl <= spielerListe.Count)
+        if (int.TryParse(Interface.ReadLine(), out int auswahl) && auswahl > 0 && auswahl <= spielerListe.Count)
         {
             Spieler ausgewaehlterSpieler = spielerListe[auswahl - 1];
             
             // Bestätigung
-            _interface.WriteLine();
-            _interface.Color = ConsoleColor.Red;
-            _interface.WriteLine($"Wirklich {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} löschen?");
-            _interface.ResetColor();
-            _interface.WriteLine("(J)a / (N)ein: ");
+            Interface.WriteLine();
+            Interface.Color = ConsoleColor.Red;
+            Interface.WriteLine($"Wirklich {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} löschen?");
+            Interface.ResetColor();
+            Interface.WriteLine("(J)a / (N)ein: ");
             
-            ConsoleKeyInfo key = _interface.GetKey();
+            ConsoleKeyInfo key = Interface.GetKey();
             
             if (key.Key == ConsoleKey.J)
             {
-                _mitglieder.Remove(ausgewaehlterSpieler);
-                _interface.Color = ConsoleColor.Green;
-                _interface.WriteLine("\n\nSpieler erfolgreich gelöscht!");
-                _interface.ResetColor();
+                AktuelleManschaft.Rmv(ausgewaehlterSpieler);
+                Interface.Color = ConsoleColor.Green;
+                Interface.WriteLine("\n\nSpieler erfolgreich gelöscht!");
+                Interface.ResetColor();
             }
             else
             {
-                _interface.WriteLine("\n\nLöschung abgebrochen.");
+                Interface.WriteLine("\n\nLöschung abgebrochen.");
             }
             
             Thread.Sleep(2000);
         }
         else
         {
-            _interface.Color = ConsoleColor.Red;
-            _interface.WriteLine("\nUngültige Auswahl!");
-            _interface.ResetColor();
+            Interface.Color = ConsoleColor.Red;
+            Interface.WriteLine("\nUngültige Auswahl!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
         }
     }
@@ -612,71 +537,75 @@ public class Controller
     /// </summary>
     private void NutzernamenAendern()
     {
-        if (_eingeloggtesMitglied == null || !_eingeloggtesMitglied.IstEingeloggt)
+        if (EingeloggtesMitglied == null || !EingeloggtesMitglied.IstEingeloggt)
         {
             return;
         }
         
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Cyan;
-        _interface.WriteLine("=== Nutzernamen ändern ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Cyan;
+        Interface.WriteLine("=== Nutzernamen ändern ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
-        _interface.WriteLine($"Aktueller Username: {_eingeloggtesMitglied.UserName}");
-        _interface.WriteLine();
+        Interface.WriteLine($"Aktueller Username: {EingeloggtesMitglied.UserName}");
+        Interface.WriteLine();
         
-        _interface.CursorVisible = true;
-        _interface.Write("Neuer Username (mindestens 3 Zeichen): ");
-        string neuerUsername = _interface.ReadLine();
-        _interface.CursorVisible = false;
+        Interface.CursorVisible = true;
+        Interface.Write("Neuer Username (mindestens 3 Zeichen): ");
+        string neuerUsername = Interface.ReadLine();
+        Interface.CursorVisible = false;
         
         // Validierung der Eingabe
         if (string.IsNullOrWhiteSpace(neuerUsername) || neuerUsername.Length < 3)
         {
-            _interface.Color = ConsoleColor.Red;
-            _interface.WriteLine("\nUsername muss mindestens 3 Zeichen lang sein!");
-            _interface.ResetColor();
+            Interface.Color = ConsoleColor.Red;
+            Interface.WriteLine("\nUsername muss mindestens 3 Zeichen lang sein!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
             return;
         }
         
         // Prüfe ob Username bereits existiert
-        foreach (var mitglied in _mitglieder)
+        foreach (var mitglied in Mitglieder)
         {
-            if (mitglied.UserName == neuerUsername && mitglied != _eingeloggtesMitglied)
+            if (mitglied.UserName == neuerUsername && mitglied != EingeloggtesMitglied)
             {
-                _interface.Color = ConsoleColor.Red;
-                _interface.WriteLine("\nUsername existiert bereits!");
-                _interface.ResetColor();
+                Interface.Color = ConsoleColor.Red;
+                Interface.WriteLine("\nUsername existiert bereits!");
+                Interface.ResetColor();
                 Thread.Sleep(2000);
                 return;
             }
         }
         
         // Bestätigung
-        _interface.WriteLine();
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine($"Username von '{_eingeloggtesMitglied.UserName}' zu '{neuerUsername}' ändern?");
-        _interface.ResetColor();
-        _interface.WriteLine("(J)a / (N)ein: ");
+        Interface.WriteLine();
+        Interface.Color = ConsoleColor.Yellow;
+        Interface.WriteLine($"Username von '{EingeloggtesMitglied.UserName}' zu '{neuerUsername}' ändern?");
+        Interface.ResetColor();
+        Interface.WriteLine("(J)a / (N)ein: ");
         
-        ConsoleKeyInfo key = _interface.GetKey();
+        ConsoleKeyInfo key = Interface.GetKey(false);
         
         if (key.Key == ConsoleKey.J)
         {
-            string alterUsername = _eingeloggtesMitglied.UserName;
-            _eingeloggtesMitglied.UserName = neuerUsername;
-            
-            _interface.Color = ConsoleColor.Green;
-            _interface.WriteLine("\n\nUsername erfolgreich geändert!");
-            _interface.ResetColor();
-            _interface.WriteLine($"Alter Username: {alterUsername}");
-            _interface.WriteLine($"Neuer Username: {neuerUsername}");
+            string alterUsername = EingeloggtesMitglied.UserName;
+            EingeloggtesMitglied.UserName = neuerUsername;
+
+            // Aktualisiere Mitglied in der Mannschaftsliste
+            AktuelleManschaft.Rmv(EingeloggtesMitglied);
+            AktuelleManschaft.Add(EingeloggtesMitglied);
+
+            Interface.Color = ConsoleColor.Green;
+            Interface.WriteLine("\n\nUsername erfolgreich geändert!");
+            Interface.ResetColor();
+            Interface.WriteLine($"Alter Username: {alterUsername}");
+            Interface.WriteLine($"Neuer Username: {neuerUsername}");
         }
         else
         {
-            _interface.WriteLine("\n\nÄnderung abgebrochen.");
+            Interface.WriteLine("\n\nÄnderung abgebrochen.");
         }
         
         Thread.Sleep(2000);
@@ -689,105 +618,102 @@ public class Controller
     /// </summary>
     private void DatenloeschungBeantragen()
     {
-        if (_eingeloggtesMitglied == null || !_eingeloggtesMitglied.IstEingeloggt)
+        if (EingeloggtesMitglied == null || !EingeloggtesMitglied.IstEingeloggt)
         {
             return;
         }
         
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Red;
-        _interface.WriteLine("=== Datenlöschung beantragen ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Red;
+        Interface.WriteLine("=== Datenlöschung beantragen ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine("WARNUNG: Diese Aktion kann nicht rückgängig gemacht werden!");
-        _interface.ResetColor();
-        _interface.WriteLine();
-        _interface.WriteLine("Folgende Daten werden gelöscht:");
-        _interface.WriteLine($"- Benutzerkonto: {_eingeloggtesMitglied.UserName}");
-        _interface.WriteLine($"- Name: {_eingeloggtesMitglied.Vorname} {_eingeloggtesMitglied.Nachname}");
+        Interface.Color = ConsoleColor.Yellow;
+        Interface.WriteLine("WARNUNG: Diese Aktion kann nicht rückgängig gemacht werden!");
+        Interface.ResetColor();
+        Interface.WriteLine();
+        Interface.WriteLine("Folgende Daten werden gelöscht:");
+        Interface.WriteLine($"- Benutzerkonto: {EingeloggtesMitglied.UserName}");
+        Interface.WriteLine($"- Name: {EingeloggtesMitglied.Vorname} {EingeloggtesMitglied.Nachname}");
         
         // Zusätzliche Informationen je nach Typ
-        if (_eingeloggtesMitglied is Spieler spieler)
+        if (EingeloggtesMitglied is Spieler spieler)
         {
-            _interface.WriteLine($"- Spielerpass mit {spieler.Pass.AnzahlTore} Toren");
+            Interface.WriteLine($"- Spielerpass mit {spieler.Pass.AnzahlTore} Toren");
         }
-        else if (_eingeloggtesMitglied is Trainer trainer)
+        else if (EingeloggtesMitglied is Trainer trainer)
         {
-            _interface.WriteLine($"- Trainerprofil ({trainer.Spezialisierung})");
+            Interface.WriteLine($"- Trainerprofil ({trainer.Spezialisierung})");
         }
-        else if (_eingeloggtesMitglied is Betreuer betreuer)
+        else if (EingeloggtesMitglied is Betreuer betreuer)
         {
-            _interface.WriteLine($"- Betreuerprofil ({betreuer.Fachgebiet})");
+            Interface.WriteLine($"- Betreuerprofil ({betreuer.Fachgebiet})");
         }
         
-        _interface.WriteLine("- Alle zugehörigen persönlichen Daten");
-        _interface.WriteLine();
+        Interface.WriteLine("- Alle zugehörigen persönlichen Daten");
+        Interface.WriteLine();
         
         // Erste Bestätigung
-        _interface.Color = ConsoleColor.Red;
-        _interface.WriteLine("Sind Sie sicher, dass Sie Ihre Daten löschen möchten?");
-        _interface.ResetColor();
-        _interface.WriteLine("(J)a / (N)ein: ");
+        Interface.Color = ConsoleColor.Red;
+        Interface.WriteLine("Sind Sie sicher, dass Sie Ihre Daten löschen möchten?");
+        Interface.ResetColor();
+        Interface.WriteLine("(J)a / (N)ein: ");
         
-        ConsoleKeyInfo key1 = _interface.GetKey();
+        ConsoleKeyInfo key1 = Interface.GetKey();
         
         if (key1.Key != ConsoleKey.J)
         {
-            _interface.WriteLine("\n\nDatenlöschung abgebrochen.");
+            Interface.WriteLine("\n\nDatenlöschung abgebrochen.");
             Thread.Sleep(2000);
             return;
         }
         
         // Zweite Bestätigung zur Sicherheit
-        _interface.WriteLine();
-        _interface.WriteLine();
-        _interface.Color = ConsoleColor.Red;
-        _interface.WriteLine("LETZTE WARNUNG!");
-        _interface.ResetColor();
-        _interface.WriteLine("Ihre Daten werden unwiderruflich gelöscht.");
-        _interface.WriteLine();
-        _interface.Write("Geben Sie zur Bestätigung 'LÖSCHEN' ein: ");
+        Interface.WriteLine();
+        Interface.WriteLine();
+        Interface.Color = ConsoleColor.Red;
+        Interface.WriteLine("LETZTE WARNUNG!");
+        Interface.ResetColor();
+        Interface.WriteLine("Ihre Daten werden unwiderruflich gelöscht.");
+        Interface.WriteLine();
+        Interface.Write("Geben Sie zur Bestätigung 'LÖSCHEN' ein: ");
         
-        _interface.CursorVisible = true;
-        string bestaetigung = _interface.ReadLine();
-        _interface.CursorVisible = false;
+        Interface.CursorVisible = true;
+        string bestaetigung = Interface.ReadLine();
+        Interface.CursorVisible = false;
         
         if (bestaetigung == "LÖSCHEN")
         {
             // Speichere Informationen für Abschlussmeldung
-            string geloeschtesKonto = $"{_eingeloggtesMitglied.Vorname} {_eingeloggtesMitglied.Nachname} ({_eingeloggtesMitglied.UserName})";
+            string geloeschtesKonto = $"{EingeloggtesMitglied.Vorname} {EingeloggtesMitglied.Nachname} ({EingeloggtesMitglied.UserName})";
             
             // Entferne aus Liste
-            _mitglieder.Remove(_eingeloggtesMitglied);
-            
-            // Lösche gespeicherte Dateien vom Repository
-            _repository.LoescheMitglied(_eingeloggtesMitglied.UserName);
-            
+            AktuelleManschaft.Rmv(EingeloggtesMitglied);
+                        
             // Session beenden
-            _eingeloggtesMitglied = null;
+            EingeloggtesMitglied = null;
             
             // Erfolgsmedung
-            _interface.WriteLine();
-            _interface.WriteLine();
-            _interface.Color = ConsoleColor.Green;
-            _interface.WriteLine("Datenlöschung erfolgreich durchgeführt.");
-            _interface.ResetColor();
-            _interface.WriteLine();
-            _interface.WriteLine($"Gelöscht: {geloeschtesKonto}");
-            _interface.WriteLine();
-            _interface.WriteLine("Alle personenbezogenen Daten wurden entfernt.");
-            _interface.WriteLine("Sie werden zum Login weitergeleitet...");
+            Interface.WriteLine();
+            Interface.WriteLine();
+            Interface.Color = ConsoleColor.Green;
+            Interface.WriteLine("Datenlöschung erfolgreich durchgeführt.");
+            Interface.ResetColor();
+            Interface.WriteLine();
+            Interface.WriteLine($"Gelöscht: {geloeschtesKonto}");
+            Interface.WriteLine();
+            Interface.WriteLine("Alle personenbezogenen Daten wurden entfernt.");
+            Interface.WriteLine("Sie werden zum Login weitergeleitet...");
             
             Thread.Sleep(4000);
         }
         else
         {
-            _interface.WriteLine();
-            _interface.Color = ConsoleColor.Yellow;
-            _interface.WriteLine("Falsche Eingabe. Datenlöschung abgebrochen.");
-            _interface.ResetColor();
+            Interface.WriteLine();
+            Interface.Color = ConsoleColor.Yellow;
+            Interface.WriteLine("Falsche Eingabe. Datenlöschung abgebrochen.");
+            Interface.ResetColor();
             Thread.Sleep(2000);
         }
     }
@@ -800,7 +726,7 @@ public class Controller
     {
         // Alle Spieler sammeln
         List<Spieler> spielerListe = new List<Spieler>();
-        foreach (var mitglied in _mitglieder)
+        foreach (var mitglied in Mitglieder)
         {
             if (mitglied is Spieler spieler)
             {
@@ -810,56 +736,56 @@ public class Controller
         
         if (spielerListe.Count == 0)
         {
-            _interface.Clear();
-            _interface.Color = ConsoleColor.Yellow;
-            _interface.WriteLine("Keine Spieler vorhanden!");
-            _interface.ResetColor();
+            Interface.Clear();
+            Interface.Color = ConsoleColor.Yellow;
+            Interface.WriteLine("Keine Spieler vorhanden!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
             return;
         }
         
         // Spieler auswählen
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Cyan;
-        _interface.WriteLine("=== Spieler behandeln ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Cyan;
+        Interface.WriteLine("=== Spieler behandeln ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
         for (int i = 0; i < spielerListe.Count; i++)
         {
-            _interface.WriteLine($"{i + 1}. {spielerListe[i].Vorname} {spielerListe[i].Nachname} - Behandlungen: {spielerListe[i].Pass.AnzahlBehandlungen}");
+            Interface.WriteLine($"{i + 1}. {spielerListe[i].Vorname} {spielerListe[i].Nachname} - Behandlungen: {spielerListe[i].Pass.AnzahlBehandlungen}");
         }
         
-        _interface.WriteLine();
-        _interface.Write("Wählen Sie einen Spieler (Nummer): ");
+        Interface.WriteLine();
+        Interface.Write("Wählen Sie einen Spieler (Nummer): ");
         
-        if (int.TryParse(_interface.ReadLine(), out int auswahl) && auswahl > 0 && auswahl <= spielerListe.Count)
+        if (int.TryParse(Interface.ReadLine(), out int auswahl) && auswahl > 0 && auswahl <= spielerListe.Count)
         {
             Spieler ausgewaehlterSpieler = spielerListe[auswahl - 1];
             
             // Behandlungsdetails
-            _interface.Clear();
-            _interface.Color = ConsoleColor.Cyan;
-            _interface.WriteLine($"=== Behandlung von {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} ===");
-            _interface.ResetColor();
-            _interface.WriteLine();
-            _interface.WriteLine($"Bisherige Behandlungen: {ausgewaehlterSpieler.Pass.AnzahlBehandlungen}");
-            _interface.WriteLine();
+            Interface.Clear();
+            Interface.Color = ConsoleColor.Cyan;
+            Interface.WriteLine($"=== Behandlung von {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} ===");
+            Interface.ResetColor();
+            Interface.WriteLine();
+            Interface.WriteLine($"Bisherige Behandlungen: {ausgewaehlterSpieler.Pass.AnzahlBehandlungen}");
+            Interface.WriteLine();
             
             // Optional: Diagnose eingeben
-            _interface.CursorVisible = true;
-            _interface.Write("Diagnose/Notiz (optional): ");
-            string diagnose = _interface.ReadLine();
-            _interface.CursorVisible = false;
+            Interface.CursorVisible = true;
+            Interface.Write("Diagnose/Notiz (optional): ");
+            string diagnose = Interface.ReadLine();
+            Interface.CursorVisible = false;
             
             // Bestätigung
-            _interface.WriteLine();
-            _interface.Color = ConsoleColor.Yellow;
-            _interface.WriteLine($"Behandlung von {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} durchführen?");
-            _interface.ResetColor();
-            _interface.WriteLine("(J)a / (N)ein: ");
+            Interface.WriteLine();
+            Interface.Color = ConsoleColor.Yellow;
+            Interface.WriteLine($"Behandlung von {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname} durchführen?");
+            Interface.ResetColor();
+            Interface.WriteLine("(J)a / (N)ein: ");
             
-            ConsoleKeyInfo key = _interface.GetKey();
+            ConsoleKeyInfo key = Interface.GetKey();
             
             if (key.Key == ConsoleKey.J)
             {
@@ -867,49 +793,53 @@ public class Controller
                 bool erfolg;
                 if (!string.IsNullOrWhiteSpace(diagnose))
                 {
-                    erfolg = betreuer.SpielerBehandeln(ausgewaehlterSpieler, diagnose);
+                    erfolg = betreuer.SpielerBehandeln(ref ausgewaehlterSpieler, diagnose);
                 }
                 else
                 {
-                    erfolg = betreuer.SpielerBehandeln(ausgewaehlterSpieler);
+                    erfolg = betreuer.SpielerBehandeln(ref ausgewaehlterSpieler);
                 }
-                
+
+                // Aktualisiere Spieler in der Mannschaftsliste
+                AktuelleManschaft.Rmv(ausgewaehlterSpieler);
+                AktuelleManschaft.Add(ausgewaehlterSpieler);
+
                 if (erfolg)
                 {
-                    _interface.WriteLine();
-                    _interface.WriteLine();
-                    _interface.Color = ConsoleColor.Green;
-                    _interface.WriteLine("Behandlung erfolgreich durchgeführt!");
-                    _interface.ResetColor();
-                    _interface.WriteLine();
-                    _interface.WriteLine($"Spieler: {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname}");
-                    _interface.WriteLine($"Behandlungen gesamt: {ausgewaehlterSpieler.Pass.AnzahlBehandlungen}");
+                    Interface.WriteLine();
+                    Interface.WriteLine();
+                    Interface.Color = ConsoleColor.Green;
+                    Interface.WriteLine("Behandlung erfolgreich durchgeführt!");
+                    Interface.ResetColor();
+                    Interface.WriteLine();
+                    Interface.WriteLine($"Spieler: {ausgewaehlterSpieler.Vorname} {ausgewaehlterSpieler.Nachname}");
+                    Interface.WriteLine($"Behandlungen gesamt: {ausgewaehlterSpieler.Pass.AnzahlBehandlungen}");
                     if (!string.IsNullOrWhiteSpace(diagnose))
                     {
-                        _interface.WriteLine($"Diagnose: {diagnose}");
+                        Interface.WriteLine($"Diagnose: {diagnose}");
                     }
-                    _interface.WriteLine();
-                    _interface.WriteLine($"Ihre Behandlungen gesamt: {betreuer.AnzahlBehandlungenGesamt}");
+                    Interface.WriteLine();
+                    Interface.WriteLine($"Ihre Behandlungen gesamt: {betreuer.AnzahlBehandlungenGesamt}");
                 }
                 else
                 {
-                    _interface.Color = ConsoleColor.Red;
-                    _interface.WriteLine("\n\nBehandlung konnte nicht durchgeführt werden!");
-                    _interface.ResetColor();
+                    Interface.Color = ConsoleColor.Red;
+                    Interface.WriteLine("\n\nBehandlung konnte nicht durchgeführt werden!");
+                    Interface.ResetColor();
                 }
             }
             else
             {
-                _interface.WriteLine("\n\nBehandlung abgebrochen.");
+                Interface.WriteLine("\n\nBehandlung abgebrochen.");
             }
             
             Thread.Sleep(3000);
         }
         else
         {
-            _interface.Color = ConsoleColor.Red;
-            _interface.WriteLine("\nUngültige Auswahl!");
-            _interface.ResetColor();
+            Interface.Color = ConsoleColor.Red;
+            Interface.WriteLine("\nUngültige Auswahl!");
+            Interface.ResetColor();
             Thread.Sleep(2000);
         }
     }
@@ -919,61 +849,61 @@ public class Controller
     /// </summary>
     private void BehandlungsstatistikAnzeigen(Betreuer betreuer)
     {
-        _interface.Clear();
-        _interface.Color = ConsoleColor.Cyan;
-        _interface.WriteLine("=== Behandlungsstatistik ===");
-        _interface.ResetColor();
-        _interface.WriteLine();
+        Interface.Clear();
+        Interface.Color = ConsoleColor.Cyan;
+        Interface.WriteLine("=== Behandlungsstatistik ===");
+        Interface.ResetColor();
+        Interface.WriteLine();
         
         // Persönliche Informationen
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine("Persönliche Daten:");
-        _interface.ResetColor();
-        _interface.WriteLine($"Name: {betreuer.Vorname} {betreuer.Nachname}");
-        _interface.WriteLine($"Username: {betreuer.UserName}");
-        _interface.WriteLine($"Fachgebiet: {betreuer.Fachgebiet}");
-        _interface.WriteLine();
+        Interface.Color = ConsoleColor.Yellow;
+        Interface.WriteLine("Persönliche Daten:");
+        Interface.ResetColor();
+        Interface.WriteLine($"Name: {betreuer.Vorname} {betreuer.Nachname}");
+        Interface.WriteLine($"Username: {betreuer.UserName}");
+        Interface.WriteLine($"Fachgebiet: {betreuer.Fachgebiet}");
+        Interface.WriteLine();
         
         // Statistiken
-        _interface.Color = ConsoleColor.Yellow;
-        _interface.WriteLine("Statistiken:");
-        _interface.ResetColor();
-        _interface.WriteLine($"Berufserfahrung: {betreuer.JahreErfahrung} Jahre");
-        _interface.WriteLine($"Behandlungen gesamt: {betreuer.AnzahlBehandlungenGesamt}");
+        Interface.Color = ConsoleColor.Yellow;
+        Interface.WriteLine("Statistiken:");
+        Interface.ResetColor();
+        Interface.WriteLine($"Berufserfahrung: {betreuer.JahreErfahrung} Jahre");
+        Interface.WriteLine($"Behandlungen gesamt: {betreuer.AnzahlBehandlungenGesamt}");
         
         if (betreuer.JahreErfahrung > 0)
         {
             double behandlungenProJahr = betreuer.BehandlungenProJahr();
-            _interface.WriteLine($"Behandlungen pro Jahr: {behandlungenProJahr:F2}");
+            Interface.WriteLine($"Behandlungen pro Jahr: {behandlungenProJahr:F2}");
         }
         
-        _interface.WriteLine();
+        Interface.WriteLine();
         
         // Bewertung basierend auf Behandlungen
         if (betreuer.AnzahlBehandlungenGesamt >= 100)
         {
-            _interface.Color = ConsoleColor.Green;
-            _interface.WriteLine("Status: Erfahrener Betreuer");
-            _interface.ResetColor();
+            Interface.Color = ConsoleColor.Green;
+            Interface.WriteLine("Status: Erfahrener Betreuer");
+            Interface.ResetColor();
         }
         else if (betreuer.AnzahlBehandlungenGesamt >= 50)
         {
-            _interface.Color = ConsoleColor.Cyan;
-            _interface.WriteLine("Status: Etablierter Betreuer");
-            _interface.ResetColor();
+            Interface.Color = ConsoleColor.Cyan;
+            Interface.WriteLine("Status: Etablierter Betreuer");
+            Interface.ResetColor();
         }
         else if (betreuer.AnzahlBehandlungenGesamt >= 10)
         {
-            _interface.WriteLine("Status: Aktiver Betreuer");
+            Interface.WriteLine("Status: Aktiver Betreuer");
         }
         else
         {
-            _interface.WriteLine("Status: Neuer Betreuer");
+            Interface.WriteLine("Status: Neuer Betreuer");
         }
         
-        _interface.WriteLine();
-        _interface.WriteLine("Drücken Sie eine beliebige Taste zum Fortfahren...");
-        _interface.GetKey();
+        Interface.WriteLine();
+        Interface.WriteLine("Drücken Sie eine beliebige Taste zum Fortfahren...");
+        Interface.GetKey();
     }
 
     /// <summary>
@@ -987,22 +917,22 @@ public class Controller
 
         do
         {
-            (tempName, tempPass) = _interface.AnzeigeLogin();
+            (tempName, tempPass) = Interface.AnzeigeLogin();
 
-            foreach (ManschaftsMitglied temp in _mitglieder)
+            foreach (ManschaftsMitglied temp in Mitglieder)
             {
                 if (temp.Einloggen(tempName, tempPass))
                 {
-                    _eingeloggtesMitglied = temp;
+                    EingeloggtesMitglied = temp;
                     return;
                 }
             }
             
             // Fehlermeldung anzeigen
-            _interface.Color = ConsoleColor.Red;
-            _interface.WriteLine("\nFalscher Benutzername oder Passwort!");
-            _interface.ResetColor();
-            _interface.WriteLine("\nBitte versuchen Sie es erneut...");
+            Interface.Color = ConsoleColor.Red;
+            Interface.WriteLine("\nFalscher Benutzername oder Passwort!");
+            Interface.ResetColor();
+            Interface.WriteLine("\nBitte versuchen Sie es erneut...");
             Thread.Sleep(2000);
             
         } while (wiederholen);

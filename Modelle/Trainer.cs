@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace VereinsVerwaltung;
+﻿namespace VereinsVerwaltung;
 
 /// <summary>
 /// Repräsentiert einen Trainer, der eine Mannschaft betreut und verwaltet.
@@ -13,7 +11,6 @@ public class Trainer : ManschaftsMitglied
     private int _jahreErfahrung;        // Jahre als Trainer tätig
     private string _spezialisierung;    // z.B. "Jugendtrainer", "Torwarttrainer", "Athletiktrainer"
     private List<string> _erfolge;      // Liste von Erfolgen (Meisterschaften, Pokale, etc.)
-    private int _gehalt;            // Monatliches Gehalt
     #endregion
 
     #region Assessoren/Modifikatoren
@@ -21,31 +18,22 @@ public class Trainer : ManschaftsMitglied
     /// <summary>
     /// Einstellungsdatum des Trainers.
     /// </summary>
-    public DateTime Einstellungsdatum => _einstellungsdatum;
-    
+    public DateTime Einstellungsdatum { get => _einstellungsdatum; set => _einstellungsdatum = value; }
+
     /// <summary>
     /// Jahre an Erfahrung als Trainer.
     /// </summary>
-    public int JahreErfahrung => _jahreErfahrung;
-    
+    public int JahreErfahrung { get => _jahreErfahrung; set => _jahreErfahrung = value; }
+
     /// <summary>
     /// Spezialisierung des Trainers.
     /// </summary>
-    public string Spezialisierung 
-    { 
-        get => _spezialisierung; 
-        set => _spezialisierung = IstEingeloggt ? value : _spezialisierung; 
-    }
+    public string Spezialisierung { get => _spezialisierung; set => _spezialisierung = value; }
     
     /// <summary>
     /// Liste der Erfolge des Trainers (nur lesbar).
     /// </summary>
-    public List<string> Erfolge => _erfolge;
-    
-    /// <summary>
-    /// Monatliches Gehalt (nur für eingeloggte Benutzer sichtbar).
-    /// </summary>
-    public decimal Gehalt => IstEingeloggt ? _gehalt : 0m;
+    public List<string> Erfolge { get => _erfolge; set => _erfolge = value; }
     #endregion
 
     #region Konstruktoren
@@ -58,23 +46,6 @@ public class Trainer : ManschaftsMitglied
         _jahreErfahrung = 0;
         _spezialisierung = "Allgemein";
         _erfolge = new List<string>();
-        _gehalt = 0;
-    }
-
-    /// <summary>
-    /// Json Konstruktor.
-    /// </summary>
-    [JsonConstructor]
-    public Trainer(string userName, string vorname, string nachname, string password, 
-                   DateTime einstellungsdatum, int jahreErfahrung, string spezialisierung, 
-                   List<string> erfolge, int gehalt) 
-                   : base(userName, vorname, nachname, password, false)
-    {
-        _einstellungsdatum = einstellungsdatum;
-        _jahreErfahrung = jahreErfahrung;
-        _spezialisierung = spezialisierung;
-        _erfolge = erfolge ?? new List<string>();
-        _gehalt = gehalt;
     }
 
     /// <summary>
@@ -86,21 +57,19 @@ public class Trainer : ManschaftsMitglied
         _jahreErfahrung = 0;
         _spezialisierung = "Allgemein";
         _erfolge = new List<string>();
-        _gehalt = 0;
     }
     
     /// <summary>
     /// Vollständiger Konstruktor mit allen Parametern.
     /// </summary>
     public Trainer(string userName, string vorname, string nachname, string password, 
-                   int jahreErfahrung, string spezialisierung, int gehalt) 
+                   int jahreErfahrung, string spezialisierung) 
                    : base(userName, vorname, nachname, password, false)
     {
         _einstellungsdatum = DateTime.Now;
         _jahreErfahrung = jahreErfahrung;
         _spezialisierung = spezialisierung;
         _erfolge = new List<string>();
-        _gehalt = gehalt;
     }
     
     /// <summary>
@@ -112,7 +81,6 @@ public class Trainer : ManschaftsMitglied
         _jahreErfahrung = andererTrainer.JahreErfahrung;
         _spezialisierung = andererTrainer.Spezialisierung;
         _erfolge = new List<string>(andererTrainer.Erfolge);
-        _gehalt = andererTrainer._gehalt;
     }
     #endregion
 

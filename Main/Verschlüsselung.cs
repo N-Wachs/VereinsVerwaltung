@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace VereinsVerwaltung;
 
@@ -7,7 +8,7 @@ public class Verschlüsselung
     public static string Ver(string inhalt, string Key = "?ß*§|oeijsdnmöal.-'")
     {
         #region Lokale Variablen
-        string Verschlüsselt = "";
+        byte[] verschlüsselt;
         int keyIndex = 0;
         #endregion
 
@@ -23,20 +24,23 @@ public class Verschlüsselung
         #endregion
 
         #region Algorithmus
-        for (int i = 0; i < inhalt.Length; i++)
+        byte[] inhaltBytes = Encoding.UTF8.GetBytes(inhalt);
+        verschlüsselt = new byte[inhaltBytes.Length];
+        
+        for (int i = 0; i < inhaltBytes.Length; i++)
         {
-            Verschlüsselt += (char)((char)(inhalt[i] + Key[keyIndex % Key.Length]) % 256);
+            verschlüsselt[i] = (byte)((inhaltBytes[i] + Key[keyIndex % Key.Length]) % 256);
             keyIndex++;
         }
         #endregion
 
-        return Verschlüsselt;
+        return Convert.ToBase64String(verschlüsselt);
     }
 
     public static string Ent(string inhalt, string Key = "?ß*§|oeijsdnmöal.-'")
     {
         #region Lokale Variablen
-        string Entschlüsselt = "";
+        byte[] entschlüsselt;
         int keyIndex = 0;
         #endregion
 
@@ -52,13 +56,23 @@ public class Verschlüsselung
         #endregion
 
         #region Algorithmus
-        for (int i = 0; i < inhalt.Length; i++)
+        try
         {
-            Entschlüsselt += (char)((char)(inhalt[i] - Key[keyIndex % Key.Length] + 256) % 256);
-            keyIndex++;
+            byte[] inhaltBytes = Convert.FromBase64String(inhalt);
+            entschlüsselt = new byte[inhaltBytes.Length];
+            
+            for (int i = 0; i < inhaltBytes.Length; i++)
+            {
+                entschlüsselt[i] = (byte)((inhaltBytes[i] - Key[keyIndex % Key.Length] + 256) % 256);
+                keyIndex++;
+            }
+            
+            return Encoding.UTF8.GetString(entschlüsselt);
+        }
+        catch
+        {
+            return "";
         }
         #endregion
-
-        return Entschlüsselt;
     }
 }

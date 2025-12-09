@@ -11,7 +11,7 @@ public class Spielerpass
     #region Assessoren/Modifikatoren
     public int AnzahlBehandlungen { get => _anzahlBehandlungen; set => _anzahlBehandlungen = value; }
     public int AnzahlTore { get => _anzahlTore; set => _anzahlTore = value; }
-    public string Nationalitaet => _nationalitaet;
+    public string Nationalitaet { get => _nationalitaet; set => _nationalitaet = value; }
     #endregion
 
     #region Konstruktoren
