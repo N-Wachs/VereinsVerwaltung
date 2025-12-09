@@ -1,4 +1,10 @@
-﻿namespace VereinsVerwaltung;
+﻿using System.Text.Json.Serialization;
+
+using System.Text.Json.Serialization;
+
+using System.Text.Json.Serialization;
+
+namespace VereinsVerwaltung;
 
 public class Spieler : ManschaftsMitglied
 {

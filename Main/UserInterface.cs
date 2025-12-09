@@ -188,6 +188,7 @@ public class UserInterface
             SpielerPassAnzeigen(spieler);
         }
         WriteLine("\n");
+        WriteLine("^ Sie müssen ggf. scrollen ^");
         WriteLine("Drücken Sie Enter um fortzufahren...");
         while (GetKey().Key != ConsoleKey.Enter) ;
     }
