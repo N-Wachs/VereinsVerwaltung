@@ -10,6 +10,18 @@
 *.userosscache
 *.sln.docstates
 
+# Build-Ausgaben
+bin/
+obj/
+
+# VS Code / Visual Studio Ordner
+.vscode/
+.vs/
+
+# Projektdateien, die nicht versioniert werden sollen
+VereinsVerwaltung.csproj
+VereinsVerwaltung.sln
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
