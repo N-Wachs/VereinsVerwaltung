@@ -2,7 +2,7 @@
 
 namespace VereinsVerwaltung;
 
-public class ManschaftsMitglied
+public class MannschaftsMitglied
 {
     #region Eigenschaften
     private string _userName;
@@ -21,7 +21,7 @@ public class ManschaftsMitglied
     #endregion
 
     #region Konstruktoren
-    public ManschaftsMitglied()
+    public MannschaftsMitglied()
     {
         _userName = string.Empty;
         _password = string.Empty;
@@ -31,7 +31,7 @@ public class ManschaftsMitglied
     }
     
     [JsonConstructor]
-    public ManschaftsMitglied(string userName, string vorname, string nachname, string password, bool istEingelogt)
+    public MannschaftsMitglied(string userName, string vorname, string nachname, string password, bool istEingelogt)
     {
         _userName = userName;
         _vorname = vorname;
@@ -40,7 +40,7 @@ public class ManschaftsMitglied
         _istEingeloggt = istEingelogt;
     }
     
-    public ManschaftsMitglied(ManschaftsMitglied anderesMitglied)
+    public MannschaftsMitglied(MannschaftsMitglied anderesMitglied)
     {
         _userName = anderesMitglied._userName;
         _vorname = anderesMitglied._vorname;

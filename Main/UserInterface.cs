@@ -1,4 +1,5 @@
-﻿namespace VereinsVerwaltung;
+﻿
+namespace VereinsVerwaltung;
 
 public class UserInterface
 {
@@ -48,8 +49,8 @@ public class UserInterface
         WriteLine("1. Ihren Spielerpass anzeigen");
         WriteLine("2. Nutzernamen ändern");
         WriteLine("3. Datenlöschung beantragen");
-        WriteLine("4. Ausgelogt Beenden");
-        WriteLine("5. Eingelogt Beenden");
+        WriteLine("4. Ausgeloggt Beenden");
+        WriteLine("5. Eingeloggt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option...");
         while (!(GetKey().KeyChar < '6' && Pressed.KeyChar > '0')) ;
@@ -64,8 +65,8 @@ public class UserInterface
         WriteLine("2. Spieler verwalten");
         WriteLine("3. Nutzernamen ändern");
         WriteLine("4. Datenlöschung beantragen");
-        WriteLine("5. Ausgelogt Beenden");
-        WriteLine("6. Eingelogt Beenden");
+        WriteLine("5. Ausgeloggt Beenden");
+        WriteLine("6. Eingeloggt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option: ");
         while (!(GetKey().KeyChar < '7' && Pressed.KeyChar > '0')) ;
@@ -80,11 +81,12 @@ public class UserInterface
         WriteLine("2. Behandlungsstatistik anzeigen");
         WriteLine("3. Nutzernamen ändern");
         WriteLine("4. Datenlöschung beantragen");
-        WriteLine("5. Ausgelogt Beenden");
-        WriteLine("6. Eingelogt Beenden");
+        WriteLine("5. Spieler anzeigen");
+        WriteLine("6. Ausgeloggt Beenden");
+        WriteLine("7. Eingeloggt Beenden");
         WriteLine();
         Write("Bitte wählen Sie eine Option: ");
-        while (!(GetKey().KeyChar < '7' && Pressed.KeyChar > '0')) ;
+        while (!(GetKey().KeyChar < '8' && Pressed.KeyChar > '0')) ;
     }
 
     public ConsoleKeyInfo GetKey(bool eingreifen = true) => _pressed = Console.ReadKey(eingreifen);
@@ -121,7 +123,7 @@ public class UserInterface
     {
         Clear();
         Color = ConsoleColor.Green;
-        if (eingeloggtBeenden)
+        if (!eingeloggtBeenden)
             WriteLine("Sie haben sich erfolgreich ausgeloggt.");
         else
             WriteLine("Sie werden beim nächsten mal wieder eingeloggt.");
@@ -259,5 +261,14 @@ public class UserInterface
         GetKey();
     }
 
+    public void WaitOrKey(int timeMS)
+    {
+        DateTime dateTime = DateTime.Now.AddMilliseconds(timeMS);
+        while (DateTime.Now < dateTime)
+        {
+            if (Console.KeyAvailable) break;
+            Thread.Sleep(20);
+        }
+    }
     #endregion
 }
