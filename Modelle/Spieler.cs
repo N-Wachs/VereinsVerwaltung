@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace VereinsVerwaltung;
 
-public class Spieler : ManschaftsMitglied
+public class Spieler : MannschaftsMitglied
 {
     #region Eigenschaften
     private Spielerpass _pass;

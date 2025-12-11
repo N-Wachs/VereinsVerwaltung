@@ -6,15 +6,15 @@ public class Controller
 {
     #region Eigenschaften
     private UserInterface _interface;
-    private Manschaft _manschaft;
-    private ManschaftsMitglied? _eingeloggtesMitglied;
+    private Mannschaft _Mannschaft;
+    private MannschaftsMitglied? _eingeloggtesMitglied;
     #endregion
 
     #region Assessoren/Modifikatoren
     private UserInterface Interface { get => _interface; set => _interface = value; }
-    private ManschaftsMitglied? EingeloggtesMitglied { get => _eingeloggtesMitglied; set => _eingeloggtesMitglied = value; }
-    private List<ManschaftsMitglied> Mitglieder => _manschaft.GetMitglieder();
-    private Manschaft AktuelleManschaft { get => _manschaft; set => _manschaft = value; }
+    private MannschaftsMitglied? EingeloggtesMitglied { get => _eingeloggtesMitglied; set => _eingeloggtesMitglied = value; }
+    private List<MannschaftsMitglied> Mitglieder => _Mannschaft.GetMitglieder();
+    private Mannschaft AktuelleMannschaft { get => _Mannschaft; set => _Mannschaft = value; }
     #endregion
 
     #region Konstruktor
@@ -22,9 +22,9 @@ public class Controller
     {
         _interface = new UserInterface();
         if (Path.Exists("Mitglieder"))
-            _manschaft = new Manschaft("Mitglieder");
+            _Mannschaft = new Mannschaft("Mitglieder");
         else 
-            _manschaft = new Manschaft();
+            _Mannschaft = new Mannschaft();
         _eingeloggtesMitglied = null;
 
         if (File.Exists("Mitglieder/eingeloggt.xml"))
@@ -35,8 +35,8 @@ public class Controller
             reader.Close();
 
             // Deserialisierung des eingeloggten Mitglieds
-            XmlSerializer serializer = new XmlSerializer(typeof(ManschaftsMitglied), new Type[] { typeof(Trainer), typeof(Spieler), typeof(Betreuer) });
-            EingeloggtesMitglied = (ManschaftsMitglied?)serializer.Deserialize(new StringReader(xmlInhalt));
+            XmlSerializer serializer = new XmlSerializer(typeof(MannschaftsMitglied), new Type[] { typeof(Trainer), typeof(Spieler), typeof(Betreuer) });
+            EingeloggtesMitglied = (MannschaftsMitglied?)serializer.Deserialize(new StringReader(xmlInhalt));
         }
     }
     #endregion
@@ -155,15 +155,21 @@ public class Controller
                         DatenloeschungBeantragen();
                         break;
                     case '5':
+                        // Spielerliste Anzeigen
+                        AlleSpielerPaesseAnzeigen();
+                        break;
+                    case '6':
                         // Ausloggen
                         beendenEingellogt = false;
                         wiederholen = false;
                         break;
-                    case '6':
+
+                    case '7':
                         // Eingeloggt beenden
                         wiederholen = false;
                         beendenEingellogt = true;
                         break;
+
                 }
             }
             else
@@ -172,7 +178,7 @@ public class Controller
                 Interface.Color = ConsoleColor.Red;
                 Interface.WriteLine("Unbekannter Mitgliedstyp! Bitte kontaktieren Sie den Administrator.");
                 Interface.ResetColor();
-                Thread.Sleep(3000);
+                Interface.WaitOrKey(3000);
                 Interface.WriteLine("Beenden der Sitzung mit Enter?");
                 while (Interface.GetKey().Key != ConsoleKey.Enter) ;
                 beendenEingellogt = false;
@@ -187,18 +193,19 @@ public class Controller
             {
                 EingeloggtesMitglied.Ausloggen();
                 EingeloggtesMitglied = null;
-                File.Delete("Mitglieder/eingeloggt.xml");
+                if (File.Exists("Mitglieder/eingeloggt.xml"))
+                    File.Delete("Mitglieder/eingeloggt.xml");
             }
         }
         else
         {
-            AktuelleManschaft.EingeloggtesMitgliedSpeichern(EingeloggtesMitglied);
+            AktuelleMannschaft.EingeloggtesMitgliedSpeichern(EingeloggtesMitglied);
         }
 
-        AktuelleManschaft.MitgliederSpeichern();
+        AktuelleMannschaft.MitgliederSpeichern();
 
         Interface.Goodbye(beendenEingellogt);
-        Thread.Sleep(3000);
+        Interface.WaitOrKey(3000);
     }
     
     /// <summary>
@@ -240,7 +247,7 @@ public class Controller
             Interface.WriteLine("1. Neuen Spieler hinzufügen");
             Interface.WriteLine("2. Spieler bearbeiten");
             Interface.WriteLine("3. Spieler löschen");
-            Interface.WriteLine("4. Alle Spieler anzeigen");
+            Interface.WriteLine("4. Alle Spieler infos anzeigen");
             Interface.WriteLine("5. Zurück zum Hauptmenü");
             Interface.WriteLine();
             Interface.Write("Bitte wählen Sie eine Option: ");
@@ -268,7 +275,7 @@ public class Controller
                     Interface.Color = ConsoleColor.Red;
                     Interface.WriteLine("\n\nUngültige Eingabe!");
                     Interface.ResetColor();
-                    Thread.Sleep(1500);
+                    Interface.WaitOrKey(1500);
                     break;
             }
         } while (!zurueck);
@@ -300,7 +307,7 @@ public class Controller
                 Interface.WriteLine("\nUsername existiert bereits!");
                 Interface.ResetColor();
                 Interface.CursorVisible = false;
-                Thread.Sleep(2000);
+                Interface.WaitOrKey(2000);
                 return;
             }
         }
@@ -328,12 +335,12 @@ public class Controller
             new Spielerpass(0, 0, nationalitaet));
         
         // Zur Liste hinzufügen
-        AktuelleManschaft.Add(neuerSpieler);
+        AktuelleMannschaft.Add(neuerSpieler);
         
         Interface.Color = ConsoleColor.Green;
         Interface.WriteLine("\nSpieler erfolgreich hinzugefügt!");
         Interface.ResetColor();
-        Thread.Sleep(2000);
+        Interface.WaitOrKey(2000);
     }
 
     /// <summary>
@@ -357,7 +364,7 @@ public class Controller
             Interface.Color = ConsoleColor.Yellow;
             Interface.WriteLine("Keine Spieler vorhanden!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
             return;
         }
         
@@ -439,17 +446,17 @@ public class Controller
             }
 
             // Aktualisiere Spieler in der Mannschaftsliste
-            AktuelleManschaft.Rmv(ausgewaehlterSpieler);
-            AktuelleManschaft.Add(ausgewaehlterSpieler);
+            AktuelleMannschaft.Rmv(ausgewaehlterSpieler);
+            AktuelleMannschaft.Add(ausgewaehlterSpieler);
 
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
         }
         else
         {
             Interface.Color = ConsoleColor.Red;
             Interface.WriteLine("\nUngültige Auswahl!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
         }
     }
 
@@ -476,7 +483,7 @@ public class Controller
             Interface.Color = ConsoleColor.Yellow;
             Interface.WriteLine("Keine Spieler vorhanden!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
             return;
         }
         
@@ -510,7 +517,7 @@ public class Controller
             
             if (key.Key == ConsoleKey.J)
             {
-                AktuelleManschaft.Rmv(ausgewaehlterSpieler);
+                AktuelleMannschaft.Rmv(ausgewaehlterSpieler);
                 Interface.Color = ConsoleColor.Green;
                 Interface.WriteLine("\n\nSpieler erfolgreich gelöscht!");
                 Interface.ResetColor();
@@ -520,14 +527,14 @@ public class Controller
                 Interface.WriteLine("\n\nLöschung abgebrochen.");
             }
             
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
         }
         else
         {
             Interface.Color = ConsoleColor.Red;
             Interface.WriteLine("\nUngültige Auswahl!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
         }
     }
 
@@ -562,7 +569,7 @@ public class Controller
             Interface.Color = ConsoleColor.Red;
             Interface.WriteLine("\nUsername muss mindestens 3 Zeichen lang sein!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
             return;
         }
         
@@ -574,7 +581,7 @@ public class Controller
                 Interface.Color = ConsoleColor.Red;
                 Interface.WriteLine("\nUsername existiert bereits!");
                 Interface.ResetColor();
-                Thread.Sleep(2000);
+                Interface.WaitOrKey(2000);
                 return;
             }
         }
@@ -594,8 +601,8 @@ public class Controller
             EingeloggtesMitglied.UserName = neuerUsername;
 
             // Aktualisiere Mitglied in der Mannschaftsliste
-            AktuelleManschaft.Rmv(EingeloggtesMitglied);
-            AktuelleManschaft.Add(EingeloggtesMitglied);
+            AktuelleMannschaft.Rmv(EingeloggtesMitglied);
+            AktuelleMannschaft.Add(EingeloggtesMitglied);
 
             Interface.Color = ConsoleColor.Green;
             Interface.WriteLine("\n\nUsername erfolgreich geändert!");
@@ -608,7 +615,7 @@ public class Controller
             Interface.WriteLine("\n\nÄnderung abgebrochen.");
         }
         
-        Thread.Sleep(2000);
+        Interface.WaitOrKey(2000);
     }
 
     /// <summary>
@@ -665,7 +672,7 @@ public class Controller
         if (key1.Key != ConsoleKey.J)
         {
             Interface.WriteLine("\n\nDatenlöschung abgebrochen.");
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
             return;
         }
         
@@ -689,7 +696,7 @@ public class Controller
             string geloeschtesKonto = $"{EingeloggtesMitglied.Vorname} {EingeloggtesMitglied.Nachname} ({EingeloggtesMitglied.UserName})";
             
             // Entferne aus Liste
-            AktuelleManschaft.Rmv(EingeloggtesMitglied);
+            AktuelleMannschaft.Rmv(EingeloggtesMitglied);
                         
             // Session beenden
             EingeloggtesMitglied = null;
@@ -706,7 +713,7 @@ public class Controller
             Interface.WriteLine("Alle personenbezogenen Daten wurden entfernt.");
             Interface.WriteLine("Sie werden zum Login weitergeleitet...");
             
-            Thread.Sleep(4000);
+            Interface.WaitOrKey(4000);
         }
         else
         {
@@ -714,7 +721,7 @@ public class Controller
             Interface.Color = ConsoleColor.Yellow;
             Interface.WriteLine("Falsche Eingabe. Datenlöschung abgebrochen.");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
         }
     }
 
@@ -740,7 +747,7 @@ public class Controller
             Interface.Color = ConsoleColor.Yellow;
             Interface.WriteLine("Keine Spieler vorhanden!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
             return;
         }
         
@@ -793,6 +800,7 @@ public class Controller
                 bool erfolg;
                 if (!string.IsNullOrWhiteSpace(diagnose))
                 {
+                    diagnose += " Datum:" + DateTime.UtcNow.Date.ToShortDateString();
                     erfolg = betreuer.SpielerBehandeln(ref ausgewaehlterSpieler, diagnose);
                 }
                 else
@@ -801,8 +809,8 @@ public class Controller
                 }
 
                 // Aktualisiere Spieler in der Mannschaftsliste
-                AktuelleManschaft.Rmv(ausgewaehlterSpieler);
-                AktuelleManschaft.Add(ausgewaehlterSpieler);
+                AktuelleMannschaft.Rmv(ausgewaehlterSpieler);
+                AktuelleMannschaft.Add(ausgewaehlterSpieler);
 
                 if (erfolg)
                 {
@@ -833,14 +841,14 @@ public class Controller
                 Interface.WriteLine("\n\nBehandlung abgebrochen.");
             }
             
-            Thread.Sleep(3000);
+            Interface.WaitOrKey(3000);
         }
         else
         {
             Interface.Color = ConsoleColor.Red;
             Interface.WriteLine("\nUngültige Auswahl!");
             Interface.ResetColor();
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
         }
     }
 
@@ -919,7 +927,7 @@ public class Controller
         {
             (tempName, tempPass) = Interface.AnzeigeLogin();
 
-            foreach (ManschaftsMitglied temp in Mitglieder)
+            foreach (MannschaftsMitglied temp in Mitglieder)
             {
                 if (temp.Einloggen(tempName, tempPass))
                 {
@@ -933,7 +941,7 @@ public class Controller
             Interface.WriteLine("\nFalscher Benutzername oder Passwort!");
             Interface.ResetColor();
             Interface.WriteLine("\nBitte versuchen Sie es erneut...");
-            Thread.Sleep(2000);
+            Interface.WaitOrKey(2000);
             
         } while (wiederholen);
     }

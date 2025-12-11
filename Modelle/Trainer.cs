@@ -2,9 +2,9 @@
 
 /// <summary>
 /// Repräsentiert einen Trainer, der eine Mannschaft betreut und verwaltet.
-/// Erbt von ManschaftsMitglied und hat erweiterte Rechte zur Spielerverwaltung.
+/// Erbt von MannschaftsMitglied und hat erweiterte Rechte zur Spielerverwaltung.
 /// </summary>
-public class Trainer : ManschaftsMitglied
+public class Trainer : MannschaftsMitglied
 {
     #region Eigenschaften
     private DateTime _einstellungsdatum;// Datum der Vertragsunterzeichnung

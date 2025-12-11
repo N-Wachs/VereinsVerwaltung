@@ -2,9 +2,9 @@
 
 /// <summary>
 /// Repräsentiert einen Betreuer, der Spieler medizinisch versorgt und behandelt.
-/// Erbt von ManschaftsMitglied und hat Rechte zur Behandlung von Spielern.
+/// Erbt von MannschaftsMitglied und hat Rechte zur Behandlung von Spielern.
 /// </summary>
-public class Betreuer : ManschaftsMitglied
+public class Betreuer : MannschaftsMitglied
 {
     #region Eigenschaften
     private string _fachgebiet;                     // z.B. "Physiotherapie", "Sportmedizin", "Massage"
@@ -120,6 +120,7 @@ public class Betreuer : ManschaftsMitglied
         
         // Erhöhe Behandlungszähler beim Spieler
         spieler.Pass.AnzahlBehandlungen++;
+        spieler.Pass.Diagnosen.Add(diagnose);
         
         // Erhöhe Behandlungszähler beim Betreuer
         _anzahlBehandlungenGesamt++;
