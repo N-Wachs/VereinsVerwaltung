@@ -21,16 +21,16 @@ public class Controller
     public Controller()
     {
         _interface = new UserInterface();
-        if (Path.Exists("Mitglieder"))
-            _Mannschaft = new Mannschaft("Mitglieder");
+        if (Path.Exists("MitgliederXML"))
+            _Mannschaft = new Mannschaft("MitgliederXML");
         else 
             _Mannschaft = new Mannschaft();
         _eingeloggtesMitglied = null;
 
-        if (File.Exists("Mitglieder/eingeloggt.xml"))
+        if (File.Exists("MitgliederXML/eingeloggt.xml"))
         {
             // Eingeloggtes Mitglied aus XML-Datei laden
-            StreamReader reader = new StreamReader("Mitglieder/eingeloggt.xml");
+            StreamReader reader = new StreamReader("MitgliederXML/eingeloggt.xml");
             string xmlInhalt = reader.ReadToEnd();
             reader.Close();
 
@@ -186,6 +186,9 @@ public class Controller
             }
         } while (wiederholen);
 
+        AktuelleMannschaft.MitgliederSpeichernXML();
+        AktuelleMannschaft.MitgliederSpeichernJSON();
+
         if (!beendenEingellogt)
         {
             // Mitglied ausloggen
@@ -199,10 +202,9 @@ public class Controller
         }
         else
         {
-            AktuelleMannschaft.EingeloggtesMitgliedSpeichern(EingeloggtesMitglied);
+            AktuelleMannschaft.EingeloggtesMitgliedSpeichernXML(EingeloggtesMitglied);
+            AktuelleMannschaft.EingeloggtesMitgliedSpeichernJSON(EingeloggtesMitglied);
         }
-
-        AktuelleMannschaft.MitgliederSpeichern();
 
         Interface.Goodbye(beendenEingellogt);
         Interface.WaitOrKey(3000);

@@ -1,4 +1,6 @@
-﻿using System.Xml.Serialization;
+﻿using System.Collections;
+using System.Text.Json;
+using System.Xml.Serialization;
 
 namespace VereinsVerwaltung;
 
@@ -68,6 +70,10 @@ public class Mannschaft
 
             foreach (string path in Directory.GetFiles(dateiPfad, "*.xml"))
             {
+                if (path.Contains("List"))
+                {
+                    continue;
+                }
                 using FileStream fs = new FileStream(path, FileMode.Open);
 
                 MannschaftsMitglied? mitglied = (MannschaftsMitglied?)serializer.Deserialize(fs);
@@ -93,36 +99,137 @@ public class Mannschaft
     public void Rmv(MannschaftsMitglied mitglied) => _maschaftsMitglieder.Remove(mitglied);
     public List<MannschaftsMitglied> GetMitglieder() => Mannschaftsmitglieder;
 
-    public void EingeloggtesMitgliedSpeichern(MannschaftsMitglied? eingeloggtesMitglied)
+    public void EingeloggtesMitgliedSpeichernXML(MannschaftsMitglied? eingeloggtesMitglied)
     {
-        if (!Path.Exists("Mitglieder"))
+        if (!Path.Exists("MitgliederXML"))
         {
-            Directory.CreateDirectory("Mitglieder");
+            Directory.CreateDirectory("MitgliederXML");
         }
 
         XmlSerializer serializer = new XmlSerializer(
             typeof(MannschaftsMitglied),
                 new Type[] { typeof(Trainer), typeof(Spieler), typeof(Spielerpass), typeof(Betreuer) }
         );
-        using StreamWriter writer = new StreamWriter("Mitglieder/eingeloggt.xml");
+        using StreamWriter writer = new StreamWriter("MitgliederXML/eingeloggt.xml");
         serializer.Serialize(writer, eingeloggtesMitglied);
         writer.Close();
     }
-    public void MitgliederSpeichern()
+    public void MitgliederSpeichernXML()
     {
-        if (!Path.Exists("Mitglieder"))
+        if (!Path.Exists("MitgliederXML"))
         {
-            Directory.CreateDirectory("Mitglieder");
+            Directory.CreateDirectory("MitgliederXML");
+        }
+        else
+        {
+            foreach (string path in Directory.GetFiles("MitgliederXML"))
+            {
+                File.Delete(path);
+            }
         }
 
+        XmlSerializer serializer = new XmlSerializer(
+            typeof(MannschaftsMitglied),
+                new Type[] { typeof(Trainer), typeof(Spieler), typeof(Betreuer), typeof(Spielerpass), typeof(ArrayList) }
+        );
+        ArrayList arrayList = new ArrayList();
         foreach (MannschaftsMitglied mitglied in Mannschaftsmitglieder)
         {
-            XmlSerializer serializer = new XmlSerializer(
-                typeof(MannschaftsMitglied),
-                    new Type[] { typeof(Trainer), typeof(Spieler), typeof(Betreuer), typeof(Spielerpass) }
-            );
-            using FileStream fs = new FileStream($"Mitglieder/{mitglied.UserName}.xml", FileMode.Create);
-            serializer.Serialize(fs, mitglied);
+            using StreamWriter writer = new StreamWriter($"MitgliederXML/{mitglied.UserName}.xml", false);
+            serializer.Serialize(writer, mitglied);
+            arrayList.Add(mitglied);
+        }
+
+        serializer = new XmlSerializer(
+    typeof(ArrayList),
+        new Type[] { typeof(Trainer), typeof(Spieler), typeof(Betreuer), typeof(Spielerpass) }
+);
+        using StreamWriter writer1 = new StreamWriter($"MitgliederXML/Liste.xml", false);
+        serializer.Serialize(writer1, arrayList);
+    }
+
+
+    public void EingeloggtesMitgliedSpeichernJSON(MannschaftsMitglied? eingeloggtesMitglied)
+    {
+        if (!Path.Exists("MitgliederJSON"))
+        {
+            Directory.CreateDirectory("MitgliederJSON");
+        }
+
+        if (eingeloggtesMitglied == null) return;
+
+        using StreamWriter writer = new StreamWriter($"MitgliederJSON/{eingeloggtesMitglied}.json", false);
+        writer.WriteLine(JsonSerializer.Serialize(eingeloggtesMitglied));
+        writer.Close();
+    }
+    public void MitgliederSpeichernJSON()
+    {
+        if (!Path.Exists("MitgliederJSON"))
+        {
+            Directory.CreateDirectory("MitgliederJSON");
+        }
+        else
+        {
+            foreach (string path in Directory.GetFiles("MitgliederJSON"))
+            {
+                File.Delete(path);
+            }
+        }
+
+        JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
+        ArrayList arrayList = new ArrayList();
+        foreach (MannschaftsMitglied mitglied in Mannschaftsmitglieder)
+        {
+            using StreamWriter writer = new StreamWriter($"MitgliederJSON/{mitglied.UserName}.json", false);
+            writer.WriteLine(JsonSerializer.Serialize(mitglied, options));
+            writer.Close();
+            arrayList.Add(mitglied);
+        }
+
+        using StreamWriter writer1 = new StreamWriter("MitgliederJSON/List.json", false);
+        writer1.WriteLine(JsonSerializer.Serialize(arrayList, options));
+        writer1.Close();
+    }
+
+    public MannschaftsMitglied? EingeloggtesMitgliedLadenJSON()
+    {
+        if (!Directory.Exists("MitgliederJSON"))
+        {
+            Directory.CreateDirectory("MitgliederJSON");
+            return null;
+        }
+
+        string jsonInhalt = string.Empty;
+        MannschaftsMitglied? resultat = null;
+        StreamReader reader = new StreamReader("MitgliederJSON/eingeloggt.json");
+        jsonInhalt = reader.ReadToEnd();
+        reader.Close();
+
+        resultat = JsonSerializer.Deserialize<MannschaftsMitglied>(jsonInhalt);
+
+        return resultat;
+    }
+    public void MitgliederLadenJSON()
+    {
+        if (!Directory.Exists("MitgliederJSON"))
+        {
+            Directory.CreateDirectory("MitliederJSON");
+            return;
+        }
+
+        if (Directory.GetFiles("MitlgiederJSON").Count() == 0)
+        {
+            return;
+        }
+
+        Mannschaftsmitglieder = new List<MannschaftsMitglied>();
+        foreach (string path in Directory.GetFiles("MitgliederJSON"))
+        {
+            if (path.Contains("List")) continue;
+            using StreamReader reader = new StreamReader(path);
+            string jsonInhalt = reader.ReadToEnd().Trim();
+            reader.Close();
+            Mannschaftsmitglieder.Add(JsonSerializer.Deserialize<MannschaftsMitglied>(path) ?? new Spieler());
         }
     }
     #endregion
